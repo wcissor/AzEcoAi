@@ -1,0 +1,1626 @@
+cat > /mnt/user-data/outputs/dashboard.html << 'HTMLEOF'
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AzEco.Ai — Road Ice Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #080c12;
+  --bg2: #0d1320;
+  --bg3: #111827;
+  --bg4: #1a2233;
+  --bg5: #1e2a40;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #e8eef5;
+  --text2: #7a8fa8;
+  --text3: #4a5e72;
+  --ice: #38bdf8;
+  --ice2: #0ea5e9;
+  --ice3: #075985;
+  --green: #22c55e;
+  --green2: #16a34a;
+  --yellow: #eab308;
+  --yellow2: #ca8a04;
+  --red: #ef4444;
+  --red2: #dc2626;
+  --teal: #14b8a6;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+  --r: 8px;
+  --r2: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  pointer-events: none;
+  z-index: 1000;
+}
+.topbar {
+  height: 52px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+  position: relative;
+  z-index: 50;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+.logo-mark {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--ice), var(--teal));
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px;
+}
+.logo-name { color: var(--text); }
+.logo-dot { color: var(--ice); }
+.topbar-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
+.topbar-meta { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.5px; }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.status-pill {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--green);
+  font-weight: 600;
+  background: rgba(34,197,94,0.05);
+}
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: blink 1.4s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+.alert-pill {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+  background: rgba(239,68,68,0.07);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.alert-pill:hover { background: rgba(239,68,68,0.12); }
+.lang-toggle { display: flex; border: 1px solid var(--border2); border-radius: 6px; overflow: hidden; }
+.lang-btn {
+  padding: 5px 11px;
+  font-size: 11px; font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--sans);
+  letter-spacing: 0.5px;
+  transition: all 0.18s;
+}
+.lang-btn.active { background: var(--ice); color: #000; }
+.clock { font-family: var(--mono); font-size: 12px; color: var(--ice); letter-spacing: 1px; }
+.layout { display: flex; height: calc(100vh - 52px); }
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  overflow-y: auto;
+}
+.nav-sect {
+  padding: 8px 16px 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family: var(--mono);
+}
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  color: var(--text2);
+  font-size: 13px;
+  transition: all 0.15s;
+  position: relative;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { border-left-color: var(--ice); background: rgba(56,189,248,0.07); color: var(--ice); }
+.nav-icon { font-size: 14px; width: 16px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--red);
+  color: #fff;
+  font-size: 9px; font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-family: var(--mono);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+@keyframes badge-pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.sidebar-footer { margin-top: auto; padding: 14px 16px; border-top: 1px solid var(--border); }
+.sf-label { font-size: 10px; color: var(--text3); margin-bottom: 3px; font-family: var(--mono); }
+.sf-val { font-size: 11px; color: var(--teal); font-weight: 600; font-family: var(--mono); }
+.main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--bg5) transparent;
+}
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; }
+.page-title { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; }
+.page-sub { font-size: 11px; color: var(--text3); margin-top: 2px; font-family: var(--mono); }
+.hdr-actions { display: flex; gap: 8px; margin-top: 2px; }
+.btn {
+  padding: 7px 14px;
+  border-radius: var(--r);
+  font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-family: var(--sans);
+  transition: all 0.18s;
+}
+.btn-primary { background: var(--ice2); color: #fff; }
+.btn-primary:hover { background: var(--ice); color: #000; }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+.btn-ghost:hover { background: var(--bg4); color: var(--text); }
+.btn-danger { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+.btn-danger:hover { background: rgba(239,68,68,0.1); }
+.row1 { display: grid; grid-template-columns: 1fr 300px; gap: 14px; }
+.map-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); overflow: hidden; }
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+.card-title { font-size: 12px; font-weight: 600; letter-spacing: 0.3px; }
+.card-meta { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.map-body { height: 300px; position: relative; overflow: hidden; background: #0a1525; }
+.map-canvas { width: 100%; height: 100%; }
+.map-svg { width: 100%; height: 100%; }
+.road-base { stroke: #1a2a40; stroke-width: 3; fill: none; }
+.road-main { stroke: #243550; stroke-width: 8; fill: none; }
+.road-artery { stroke: #1e3455; stroke-width: 5; fill: none; }
+.road-low { stroke: #22c55e; stroke-width: 5; fill: none; stroke-linecap: round; opacity: 0.8; }
+.road-med { stroke: #eab308; stroke-width: 5; fill: none; stroke-linecap: round; opacity: 0.9; }
+.road-high { stroke: #ef4444; stroke-width: 6; fill: none; stroke-linecap: round; animation: road-flicker 1.8s ease-in-out infinite; }
+@keyframes road-flicker { 0%,100%{opacity:0.95} 50%{opacity:0.55} }
+.sensor-pin { cursor: pointer; }
+.pin-ring { fill: none; stroke-width: 1.5; animation: ring-expand 2s ease-out infinite; }
+@keyframes ring-expand { 0%{r:10;opacity:0.8} 100%{r:20;opacity:0} }
+.map-info-box {
+  position: absolute; top: 12px; right: 12px;
+  background: rgba(8,12,18,0.92);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 10px 13px;
+  font-size: 11px;
+  min-width: 160px;
+  backdrop-filter: blur(4px);
+}
+.mib-title { font-size: 11px; font-weight: 700; color: var(--ice); margin-bottom: 6px; letter-spacing: 0.3px; }
+.mib-row { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; }
+.mib-label { color: var(--text3); }
+.mib-val { font-family: var(--mono); font-weight: 600; }
+.map-legend {
+  position: absolute; bottom: 10px; left: 10px;
+  background: rgba(8,12,18,0.9);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 7px 10px;
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: 10px;
+}
+.leg-row { display: flex; align-items: center; gap: 6px; color: var(--text2); }
+.leg-line { width: 18px; height: 3px; border-radius: 2px; }
+.treat-overlay {
+  position: absolute; bottom: 10px; right: 12px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.4);
+  border-radius: var(--r);
+  padding: 7px 11px;
+  font-size: 11px;
+  display: flex; align-items: center; gap: 7px;
+  color: var(--red);
+  font-weight: 600;
+  cursor: pointer;
+  animation: treat-flash 2s ease-in-out infinite;
+  transition: background 0.2s;
+}
+.treat-overlay:hover { background: rgba(239,68,68,0.2); }
+@keyframes treat-flash { 0%,100%{border-color:rgba(239,68,68,0.4)} 50%{border-color:rgba(239,68,68,0.8)} }
+.right-panel { display: flex; flex-direction: column; gap: 12px; }
+.risk-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 14px; flex: 0 0 auto; }
+.risk-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.risk-label { font-size: 10px; font-weight: 700; color: var(--text3); letter-spacing: 1.5px; text-transform: uppercase; font-family: var(--mono); }
+.risk-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--mono); }
+.rb-low { background: rgba(34,197,94,0.1); color: var(--green); border: 1px solid rgba(34,197,94,0.25); }
+.rb-medium { background: rgba(234,179,8,0.1); color: var(--yellow); border: 1px solid rgba(234,179,8,0.25); }
+.rb-high { background: rgba(239,68,68,0.12); color: var(--red); border: 1px solid rgba(239,68,68,0.3); animation: badge-flash 1.2s ease-in-out infinite; }
+@keyframes badge-flash { 0%,100%{opacity:1} 50%{opacity:0.6} }
+.gauge-wrap { text-align: center; padding: 6px 0 4px; }
+.gauge-svg { overflow: visible; }
+.gauge-num { font-family: var(--mono); font-size: 26px; font-weight: 600; fill: var(--text); }
+.gauge-sub { font-size: 9px; fill: var(--text3); }
+.zone-pills { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 8px; }
+.zone-pill { text-align: center; padding: 6px 4px; border-radius: var(--r); border: 1px solid; }
+.zp-low { background: rgba(34,197,94,0.06); border-color: rgba(34,197,94,0.2); }
+.zp-med { background: rgba(234,179,8,0.06); border-color: rgba(234,179,8,0.2); }
+.zp-high { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.25); }
+.zp-name { font-size: 9px; color: var(--text3); font-family: var(--mono); }
+.zp-val { font-size: 15px; font-weight: 700; font-family: var(--mono); }
+.zp-val.green { color: var(--green); }
+.zp-val.yellow { color: var(--yellow); }
+.zp-val.red { color: var(--red); }
+.mini-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mini-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 9px 11px; }
+.ms-label { font-size: 10px; color: var(--text3); margin-bottom: 3px; font-family: var(--mono); }
+.ms-val { font-size: 19px; font-weight: 700; font-family: var(--mono); line-height: 1; }
+.ms-val.ice { color: var(--ice); }
+.ms-val.green { color: var(--green); }
+.ms-val.yellow { color: var(--yellow); }
+.ms-val.teal { color: var(--teal); }
+.ms-trend { font-size: 10px; color: var(--text3); margin-top: 2px; }
+.ms-trend .up { color: var(--red); }
+.ms-trend .down { color: var(--green); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 13px 14px 10px; }
+.cc-hdr { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.cc-title { font-size: 12px; font-weight: 600; }
+.cc-sub { font-size: 10px; color: var(--text3); margin-top: 1px; font-family: var(--mono); }
+.cc-metric { font-size: 20px; font-weight: 700; font-family: var(--mono); text-align: right; }
+.cc-metric.ice { color: var(--ice); }
+.cc-metric.yellow { color: var(--yellow); }
+.cc-metric.red { color: var(--red); }
+.cc-msub { font-size: 10px; color: var(--text3); text-align: right; font-family: var(--mono); }
+.chart-wrap { position: relative; height: 75px; }
+.row3 { display: grid; grid-template-columns: 1fr 340px; gap: 14px; }
+.table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); overflow: hidden; }
+.live-badge { display: flex; align-items: center; gap: 5px; font-size: 10px; color: var(--green); font-weight: 700; font-family: var(--mono); }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: blink 1.2s infinite; }
+.sensor-table { width: 100%; border-collapse: collapse; }
+.sensor-table th {
+  padding: 7px 14px;
+  font-size: 9px; font-weight: 700;
+  color: var(--text3);
+  text-align: left;
+  background: var(--bg3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.sensor-table td {
+  padding: 7px 14px;
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  white-space: nowrap;
+}
+.sensor-table tr:hover td { background: rgba(255,255,255,0.015); }
+.prob-bar-wrap { display: flex; align-items: center; gap: 6px; }
+.prob-bar { flex: 1; height: 3px; background: var(--bg5); border-radius: 2px; overflow: hidden; min-width: 40px; }
+.prob-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+.pill { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; font-family: var(--mono); }
+.pill-low { background: rgba(34,197,94,0.1); color: var(--green); }
+.pill-med { background: rgba(234,179,8,0.1); color: var(--yellow); }
+.pill-high { background: rgba(239,68,68,0.1); color: var(--red); }
+.sim-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 15px; display: flex; flex-direction: column; }
+.sim-title { font-size: 13px; font-weight: 600; margin-bottom: 13px; }
+.sim-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 10px; }
+.sim-label { font-size: 11px; color: var(--text2); min-width: 100px; }
+.sim-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 3px; background: var(--bg5); border-radius: 2px; cursor: pointer; outline: none; }
+.sim-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--ice); cursor: pointer; box-shadow: 0 0 8px rgba(56,189,248,0.5); }
+.sim-val { font-size: 12px; font-weight: 700; min-width: 48px; text-align: right; color: var(--ice); font-family: var(--mono); }
+.sim-result { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 12px; margin-top: 8px; }
+.sr-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.sr-label { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.sr-val { font-size: 18px; font-weight: 700; font-family: var(--mono); }
+.sr-desc { font-size: 11px; color: var(--text2); line-height: 1.5; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.sim-formula { font-size: 10px; font-family: var(--mono); color: var(--text3); background: var(--bg4); border-radius: var(--r); padding: 8px 10px; margin-top: 10px; line-height: 1.7; }
+.action-bar { display: flex; gap: 8px; margin-top: 10px; }
+.alerts-card { background: var(--bg2); border: 1px solid rgba(239,68,68,0.2); border-radius: var(--r2); overflow: hidden; display: none; }
+.alerts-card.show { display: block; }
+.alert-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.alert-item:last-child { border-bottom: none; }
+.alert-ico { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.alert-txt { flex: 1; }
+.alert-title { font-weight: 600; margin-bottom: 2px; }
+.alert-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.alert-time { font-size: 10px; color: var(--text3); font-family: var(--mono); flex-shrink: 0; }
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg5); border-radius: 3px; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 500; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--r2); padding: 24px; width: 400px; max-width: 92vw; }
+.modal-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+.modal-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.modal-row:last-child { border-bottom: none; }
+.modal-lbl { color: var(--text3); font-family: var(--mono); }
+.modal-val { font-weight: 600; font-family: var(--mono); }
+.modal-actions { display: flex; gap: 8px; margin-top: 16px; }
+.settings-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 16px; display: none; }
+.settings-card.show { display: block; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.setting-row:last-child { border-bottom: none; }
+.setting-label { font-size: 12px; }
+.setting-sub { font-size: 11px; color: var(--text3); margin-top: 1px; font-family: var(--mono); }
+.toggle-wrap { position: relative; width: 38px; height: 20px; }
+.toggle-input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider { position: absolute; inset: 0; background: var(--bg5); border-radius: 10px; cursor: pointer; transition: background 0.25s; border: 1px solid var(--border2); }
+.toggle-slider::before { content: ''; position: absolute; width: 14px; height: 14px; left: 2px; top: 2px; background: var(--text2); border-radius: 50%; transition: all 0.25s; }
+.toggle-input:checked + .toggle-slider { background: var(--ice3); border-color: var(--ice2); }
+.toggle-input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--ice); }
+.analytics-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r2); padding: 16px; display: none; }
+.analytics-card.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-mark">❄</div>
+    <span><span class="logo-name">AzEco</span><span class="logo-dot">.Ai</span></span>
+  </div>
+  <div class="topbar-divider"></div>
+  <div class="topbar-meta" id="t-subtitle">Road Ice Intelligence System v2.1</div>
+  <div class="topbar-right">
+    <div class="status-pill"><div class="pulse"></div><span id="t-live">Live</span></div>
+    <div class="alert-pill" onclick="toggleAlerts()">
+      ⚠ <span id="alert-count">3</span> <span id="t-alerts">Alerts</span>
+    </div>
+    <div class="clock" id="clock">00:00:00</div>
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('ru')">RU</button>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-sect" id="t-nav-main">Main</div>
+    <div class="nav-item active" onclick="showView('dashboard')">
+      <span class="nav-icon">🗺</span><span id="t-nav-map">Road Map</span>
+    </div>
+    <div class="nav-item" onclick="showView('analytics')">
+      <span class="nav-icon">📊</span><span id="t-nav-analytics">Analytics</span>
+    </div>
+    <div class="nav-item" onclick="toggleAlerts()">
+      <span class="nav-icon">⚠</span><span id="t-nav-alerts">Alerts</span>
+      <span class="nav-badge" id="badge-count">3</span>
+    </div>
+    <div class="nav-sect" id="t-nav-ml" style="margin-top:8px">ML System</div>
+    <div class="nav-item" onclick="showModal('model-modal')">
+      <span class="nav-icon">🧠</span><span id="t-nav-model">ML Model</span>
+    </div>
+    <div class="nav-item" onclick="showModal('sensor-modal')">
+      <span class="nav-icon">🔬</span><span id="t-nav-sensors">Sensors</span>
+    </div>
+    <div class="nav-item" onclick="showView('settings')">
+      <span class="nav-icon">⚙</span><span id="t-nav-settings">Settings</span>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sf-label" id="t-model-ver">Model version</div>
+      <div class="sf-val">RF v2.1 · 200 trees</div>
+      <div class="sf-label" style="margin-top:6px" id="t-accuracy">Accuracy</div>
+      <div class="sf-val">94.3%</div>
+    </div>
+  </div>
+
+  <div class="main" id="main-content">
+    <div class="page-header">
+      <div>
+        <div class="page-title" id="t-page-title">Road Ice Monitoring — Baku</div>
+        <div class="page-sub">Last update: <span id="last-update">—</span></div>
+      </div>
+      <div class="hdr-actions">
+        <button class="btn btn-ghost" onclick="exportData()" id="t-btn-export">↓ Export CSV</button>
+        <button class="btn btn-danger" onclick="activateTreatment()" id="t-btn-treat">🧂 Deploy Treatment</button>
+        <button class="btn btn-primary" onclick="runPrediction()" id="t-btn-predict">▶ Run Prediction</button>
+      </div>
+    </div>
+
+    <div class="alerts-card" id="alerts-panel">
+      <div class="card-header">
+        <span class="card-title" style="color:var(--red)" id="t-alerts-title">⚠ Active Alerts</span>
+        <button class="btn btn-ghost" onclick="toggleAlerts()" style="padding:4px 10px;font-size:11px">✕ Close</button>
+      </div>
+      <div id="alerts-list"></div>
+    </div>
+
+    <div id="view-dashboard">
+      <div class="row1">
+        <div class="map-card">
+          <div class="card-header">
+            <span class="card-title" id="t-map-title">Live Risk Map · Baku Road Network</span>
+            <span class="card-meta" id="t-zones">3 zones monitored</span>
+          </div>
+          <div class="map-body">
+            <svg class="map-svg" viewBox="0 0 640 300" xmlns="http://www.w3.org/2000/svg">
+              <rect width="640" height="300" fill="#090e1a"/>
+              <rect x="20" y="15" width="90" height="55" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="130" y="15" width="100" height="55" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="250" y="15" width="85" height="50" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="355" y="15" width="110" height="55" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="485" y="15" width="135" height="55" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="20" y="105" width="80" height="75" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="120" y="105" width="90" height="75" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="230" y="100" width="110" height="80" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="360" y="100" width="90" height="80" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="470" y="105" width="150" height="75" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="20" y="210" width="110" height="75" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="150" y="215" width="90" height="70" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="260" y="205" width="90" height="80" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="370" y="210" width="95" height="75" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <rect x="485" y="210" width="135" height="75" rx="3" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+              <line class="road-base" x1="120" y1="0" x2="120" y2="300"/>
+              <line class="road-base" x1="245" y1="0" x2="245" y2="300"/>
+              <line class="road-base" x1="355" y1="0" x2="355" y2="300"/>
+              <line class="road-base" x1="470" y1="0" x2="470" y2="300"/>
+              <line class="road-base" x1="0" y1="95" x2="640" y2="95"/>
+              <line class="road-base" x1="0" y1="200" x2="640" y2="200"/>
+              <line class="road-main" x1="0" y1="150" x2="640" y2="150"/>
+              <line class="road-main" x1="310" y1="0" x2="310" y2="300"/>
+              <line class="road-low" x1="120" y1="95" x2="245" y2="95"/>
+              <line class="road-low" x1="120" y1="95" x2="120" y2="200"/>
+              <line class="road-med" x1="245" y1="200" x2="355" y2="200"/>
+              <line class="road-med" x1="245" y1="150" x2="245" y2="200"/>
+              <line class="road-high" x1="355" y1="95" x2="470" y2="95"/>
+              <line class="road-high" x1="355" y1="95" x2="355" y2="150"/>
+              <g class="sensor-pin" onclick="selectZone('A')">
+                <circle cx="182" cy="95" r="18" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.3" class="pin-ring"/>
+                <circle cx="182" cy="95" r="9" fill="#22c55e" stroke="#0a1525" stroke-width="2" filter="url(#glow-g)"/>
+                <text x="182" y="99" text-anchor="middle" font-size="9" fill="#000" font-weight="700" font-family="'IBM Plex Mono'">A</text>
+              </g>
+              <g class="sensor-pin" onclick="selectZone('B')">
+                <circle cx="300" cy="200" r="18" fill="none" stroke="#eab308" stroke-width="1" opacity="0.3" class="pin-ring"/>
+                <circle cx="300" cy="200" r="9" fill="#eab308" stroke="#0a1525" stroke-width="2"/>
+                <text x="300" y="204" text-anchor="middle" font-size="9" fill="#000" font-weight="700" font-family="'IBM Plex Mono'">B</text>
+              </g>
+              <g class="sensor-pin" onclick="selectZone('C')">
+                <circle cx="412" cy="95" r="20" fill="none" stroke="#ef4444" stroke-width="1" opacity="0.4" class="pin-ring"/>
+                <circle cx="412" cy="95" r="10" fill="#ef4444" stroke="#0a1525" stroke-width="2"/>
+                <text x="412" y="99" text-anchor="middle" font-size="9" fill="#fff" font-weight="700" font-family="'IBM Plex Mono'">C</text>
+              </g>
+              <rect x="158" y="68" width="48" height="16" rx="4" fill="rgba(34,197,94,0.15)"/>
+              <text x="182" y="79" text-anchor="middle" font-size="9" fill="#22c55e" font-weight="700" font-family="'IBM Plex Mono'">LOW</text>
+              <rect x="272" y="172" width="56" height="16" rx="4" fill="rgba(234,179,8,0.15)"/>
+              <text x="300" y="183" text-anchor="middle" font-size="9" fill="#eab308" font-weight="700" font-family="'IBM Plex Mono'">MED</text>
+              <rect x="390" y="68" width="44" height="16" rx="4" fill="rgba(239,68,68,0.15)"/>
+              <text x="412" y="79" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="700" font-family="'IBM Plex Mono'">HIGH</text>
+              <g id="treatment-indicator" opacity="0">
+                <rect x="340" y="82" width="145" height="25" rx="4" fill="rgba(56,189,248,0.2)" stroke="rgba(56,189,248,0.5)" stroke-width="1"/>
+                <text x="412" y="98" text-anchor="middle" font-size="9" fill="#38bdf8" font-weight="700" font-family="'IBM Plex Mono'">🧂 SALT DEPLOYED</text>
+              </g>
+              <defs>
+                <filter id="glow-g" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <filter id="car-glow" x="-80%" y="-80%" width="260%" height="260%">
+                  <feGaussianBlur stdDeviation="2.5" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+                <filter id="headlight-glow" x="-200%" y="-200%" width="500%" height="500%">
+                  <feGaussianBlur stdDeviation="4" result="blur"/>
+                  <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+                </filter>
+              </defs>
+              <g id="car-A" transform="translate(120,91)">
+                <ellipse cx="10" cy="10" rx="16" ry="5" fill="rgba(0,0,0,0.35)"/>
+                <rect x="0" y="1" width="22" height="11" rx="3" fill="#1a6b3c"/>
+                <rect x="2" y="-2" width="15" height="8" rx="2" fill="#22c55e"/>
+                <rect x="0" y="6" width="22" height="2" fill="#38bdf8" opacity="0.7"/>
+                <rect x="3" y="-1" width="6" height="5" rx="1" fill="#7ef8ff" opacity="0.7"/>
+                <rect x="10" y="-1" width="6" height="5" rx="1" fill="#7ef8ff" opacity="0.6"/>
+                <circle cx="4" cy="12" r="3" fill="#0a1525" stroke="#38bdf8" stroke-width="1"/>
+                <circle cx="18" cy="12" r="3" fill="#0a1525" stroke="#38bdf8" stroke-width="1"/>
+                <circle cx="4" cy="12" r="1.2" fill="#243550"/>
+                <circle cx="18" cy="12" r="1.2" fill="#243550"/>
+                <circle cx="22" cy="4" r="2.5" fill="#fffde0" opacity="0.9" filter="url(#headlight-glow)"/>
+                <circle cx="22" cy="9" r="2.5" fill="#fffde0" opacity="0.9" filter="url(#headlight-glow)"/>
+                <rect x="-5" y="3" width="5" height="6" rx="1" fill="#243550" stroke="#38bdf8" stroke-width="0.7"/>
+                <rect x="-4" y="5" width="3" height="2" rx="0.5" fill="#38bdf8" opacity="0.8"/>
+                <text x="7" y="8" font-size="3.5" fill="#7ef8ff" font-family="'IBM Plex Mono'" font-weight="700" text-anchor="middle">AZ</text>
+              </g>
+              <g id="car-B" transform="translate(245,196)">
+                <ellipse cx="10" cy="10" rx="16" ry="5" fill="rgba(0,0,0,0.35)"/>
+                <rect x="0" y="1" width="22" height="11" rx="3" fill="#7c5a08"/>
+                <rect x="2" y="-2" width="15" height="8" rx="2" fill="#eab308"/>
+                <rect x="0" y="6" width="22" height="2" fill="#38bdf8" opacity="0.7"/>
+                <rect x="3" y="-1" width="6" height="5" rx="1" fill="#7ef8ff" opacity="0.7"/>
+                <rect x="10" y="-1" width="6" height="5" rx="1" fill="#7ef8ff" opacity="0.6"/>
+                <circle cx="4" cy="12" r="3" fill="#0a1525" stroke="#eab308" stroke-width="1"/>
+                <circle cx="18" cy="12" r="3" fill="#0a1525" stroke="#eab308" stroke-width="1"/>
+                <circle cx="4" cy="12" r="1.2" fill="#243550"/>
+                <circle cx="18" cy="12" r="1.2" fill="#243550"/>
+                <circle cx="22" cy="4" r="2.5" fill="#fffde0" opacity="0.9" filter="url(#headlight-glow)"/>
+                <circle cx="22" cy="9" r="2.5" fill="#fffde0" opacity="0.9" filter="url(#headlight-glow)"/>
+                <rect x="-5" y="3" width="5" height="6" rx="1" fill="#243550" stroke="#eab308" stroke-width="0.7"/>
+                <rect x="-4" y="5" width="3" height="2" rx="0.5" fill="#eab308" opacity="0.8"/>
+                <text x="7" y="8" font-size="3.5" fill="#7ef8ff" font-family="'IBM Plex Mono'" font-weight="700" text-anchor="middle">AZ</text>
+              </g>
+              <g id="car-C" transform="translate(355,91)">
+                <ellipse cx="10" cy="10" rx="17" ry="5.5" fill="rgba(0,0,0,0.4)"/>
+                <rect x="0" y="1" width="24" height="12" rx="3" fill="#7a1a1a"/>
+                <rect x="2" y="-3" width="17" height="9" rx="2" fill="#ef4444"/>
+                <rect x="0" y="7" width="24" height="2.5" fill="#38bdf8" opacity="0.8"/>
+                <rect x="3" y="-2" width="6" height="5.5" rx="1" fill="#7ef8ff" opacity="0.7"/>
+                <rect x="11" y="-2" width="6" height="5.5" rx="1" fill="#7ef8ff" opacity="0.6"/>
+                <circle cx="4" cy="13" r="3.5" fill="#0a1525" stroke="#ef4444" stroke-width="1.2"/>
+                <circle cx="20" cy="13" r="3.5" fill="#0a1525" stroke="#ef4444" stroke-width="1.2"/>
+                <circle cx="4" cy="13" r="1.4" fill="#243550"/>
+                <circle cx="20" cy="13" r="1.4" fill="#243550"/>
+                <circle cx="24" cy="4" r="3" fill="#fffde0" opacity="0.95" filter="url(#headlight-glow)"/>
+                <circle cx="24" cy="10" r="3" fill="#fffde0" opacity="0.95" filter="url(#headlight-glow)"/>
+                <rect x="8" y="-7" width="8" height="4" rx="2" fill="#ef4444" id="beacon-C"/>
+                <circle cx="12" cy="-5" r="2.5" fill="#ff6666" opacity="0.9" filter="url(#headlight-glow)" id="beacon-light-C"/>
+                <rect x="-7" y="2" width="7" height="8" rx="1.5" fill="#243550" stroke="#ef4444" stroke-width="0.8"/>
+                <rect x="-6" y="5" width="5" height="2.5" rx="0.5" fill="#ef4444" opacity="0.9"/>
+                <text x="8" y="8" font-size="3.5" fill="#7ef8ff" font-family="'IBM Plex Mono'" font-weight="700" text-anchor="middle">AZ</text>
+              </g>
+              <foreignObject x="0" y="0" width="640" height="300" style="pointer-events:none">
+                <canvas xmlns="http://www.w3.org/1999/xhtml" id="salt-canvas" width="640" height="300" style="display:block;width:100%;height:100%"></canvas>
+              </foreignObject>
+            </svg>
+
+            <div class="map-info-box">
+              <div class="mib-title" id="zone-title">Zone A — Safe</div>
+              <div class="mib-row">
+                <span class="mib-label" id="t-temp">Temp</span>
+                <span class="mib-val" id="zone-temp" style="color:var(--ice)">—</span>
+              </div>
+              <div class="mib-row">
+                <span class="mib-label" id="t-hum">Humidity</span>
+                <span class="mib-val" id="zone-hum">—</span>
+              </div>
+              <div class="mib-row">
+                <span class="mib-label" id="t-moist">Moisture</span>
+                <span class="mib-val" id="zone-moist">0.75</span>
+              </div>
+              <div class="mib-row">
+                <span class="mib-label" id="t-prob">Ice prob.</span>
+                <span class="mib-val" id="zone-prob" style="color:var(--green)">—</span>
+              </div>
+              <div class="mib-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--border)">
+                <span class="mib-label" id="t-dew">Dew point</span>
+                <span class="mib-val" id="zone-dew" style="color:var(--text2)">—</span>
+              </div>
+            </div>
+
+            <div class="map-legend">
+              <div class="leg-row"><div class="leg-line" style="background:var(--green)"></div><span id="t-leg-low">Low risk</span></div>
+              <div class="leg-row"><div class="leg-line" style="background:var(--yellow)"></div><span id="t-leg-med">Medium risk</span></div>
+              <div class="leg-row"><div class="leg-line" style="background:var(--red)"></div><span id="t-leg-high">High risk</span></div>
+            </div>
+
+            <div class="treat-overlay" id="treat-btn" onclick="activateTreatment()">
+              ⚡ <span id="t-treat-btn">Treat Zone C</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="risk-card">
+            <div class="risk-hdr">
+              <span class="risk-label" id="t-overall-risk">Overall Risk</span>
+              <span class="risk-badge rb-medium" id="risk-badge">MEDIUM</span>
+            </div>
+            <div class="gauge-wrap">
+              <svg class="gauge-svg" viewBox="0 0 130 80" width="160" height="100">
+                <path d="M 18 75 A 47 47 0 0 1 112 75" fill="none" stroke="#1a2233" stroke-width="10" stroke-linecap="round"/>
+                <path id="gauge-arc" d="M 18 75 A 47 47 0 0 1 112 75" fill="none" stroke="#eab308" stroke-width="10" stroke-linecap="round"
+                  stroke-dasharray="147.65" stroke-dashoffset="73.8"/>
+                <text id="gauge-pct" x="65" y="68" class="gauge-num" text-anchor="middle" font-family="'IBM Plex Mono'" font-size="26" font-weight="600" fill="#e8eef5">—</text>
+                <text id="t-gauge-sub" x="65" y="79" class="gauge-sub" text-anchor="middle" font-size="9" fill="#4a5e72" font-family="'IBM Plex Mono'">ice probability</text>
+              </svg>
+            </div>
+            <div class="zone-pills">
+              <div class="zone-pill zp-low">
+                <div class="zp-name" id="t-zone-a">Zone A</div>
+                <div class="zp-val green" id="za-val">—</div>
+              </div>
+              <div class="zone-pill zp-med">
+                <div class="zp-name" id="t-zone-b">Zone B</div>
+                <div class="zp-val yellow" id="zb-val">—</div>
+              </div>
+              <div class="zone-pill zp-high">
+                <div class="zp-name" id="t-zone-c">Zone C</div>
+                <div class="zp-val red" id="zc-val">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mini-grid">
+            <div class="mini-stat">
+              <div class="ms-label" id="t-dew-point">Dew Point</div>
+              <div class="ms-val ice" id="val-dew">—</div>
+              <div class="ms-trend"><span class="down" id="t-dew-trend">↓ freezing</span></div>
+            </div>
+            <div class="mini-stat">
+              <div class="ms-label" id="t-fi">Freeze Index</div>
+              <div class="ms-val yellow" id="val-fi">—</div>
+              <div class="ms-trend"><span class="up" id="t-fi-trend">↑ rising</span></div>
+            </div>
+            <div class="mini-stat">
+              <div class="ms-label" id="t-sensors">Active Sensors</div>
+              <div class="ms-val green">12/12</div>
+              <div class="ms-trend" id="t-sensors-ok">All online</div>
+            </div>
+            <div class="mini-stat">
+              <div class="ms-label" id="t-acc">Accuracy</div>
+              <div class="ms-val teal">94.3%</div>
+              <div class="ms-trend" id="t-model-st">RF · 200 est.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="chart-card">
+          <div class="cc-hdr">
+            <div>
+              <div class="cc-title" id="t-chart-temp">Temperature</div>
+              <div class="cc-sub" id="t-chart-temp-sub">Last 30 readings</div>
+            </div>
+            <div>
+              <div class="cc-metric ice" id="val-temp-now">—</div>
+              <div class="cc-msub" id="t-now">now</div>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartTemp"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-hdr">
+            <div>
+              <div class="cc-title" id="t-chart-hum">Humidity</div>
+              <div class="cc-sub" id="t-chart-hum-sub">Atmospheric %</div>
+            </div>
+            <div>
+              <div class="cc-metric yellow" id="val-hum-now">—</div>
+              <div class="cc-msub" id="t-avg">avg</div>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartHum"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-hdr">
+            <div>
+              <div class="cc-title" id="t-chart-ice">Ice Probability</div>
+              <div class="cc-sub" id="t-chart-ice-sub">ML model output</div>
+            </div>
+            <div>
+              <div class="cc-metric red" id="val-ice-now">—</div>
+              <div class="cc-msub" id="t-peak">peak</div>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="chartIce"></canvas></div>
+        </div>
+      </div>
+
+      <div class="row3">
+        <div class="table-card">
+          <div class="card-header">
+            <span class="card-title" id="t-sensor-log">Sensor Log</span>
+            <div class="live-badge"><div class="live-dot"></div><span id="t-updating">Updating every 5s · Live Arduino</span></div>
+          </div>
+          <table class="sensor-table">
+            <thead>
+              <tr>
+                <th id="t-th-time">Time</th>
+                <th id="t-th-temp">Temp °C</th>
+                <th id="t-th-hum">Hum %</th>
+                <th id="t-th-moist">Moisture</th>
+                <th id="t-th-fi">Freeze Idx</th>
+                <th id="t-th-prob">Probability</th>
+                <th id="t-th-risk">Risk</th>
+              </tr>
+            </thead>
+            <tbody id="sensor-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="sim-card">
+          <div class="sim-title" id="t-sim-title">⚗ ML Simulator</div>
+          <div class="sim-row">
+            <span class="sim-label" id="t-sim-temp">Temperature (°C)</span>
+            <input type="range" class="sim-slider" id="sim-temp" min="-15" max="10" step="0.5" value="-1.5" oninput="simulate()">
+            <span class="sim-val" id="sim-temp-val">-1.5°C</span>
+          </div>
+          <div class="sim-row">
+            <span class="sim-label" id="t-sim-hum">Humidity (%)</span>
+            <input type="range" class="sim-slider" id="sim-hum" min="30" max="100" step="1" value="85" oninput="simulate()">
+            <span class="sim-val" id="sim-hum-val">85%</span>
+          </div>
+          <div class="sim-row">
+            <span class="sim-label" id="t-sim-moist">Road Moisture</span>
+            <input type="range" class="sim-slider" id="sim-moist" min="0" max="1" step="0.05" value="0.8" oninput="simulate()">
+            <span class="sim-val" id="sim-moist-val">0.80</span>
+          </div>
+          <div class="sim-result">
+            <div class="sr-row">
+              <span class="sr-label" id="t-ice-prob">Ice Probability</span>
+              <span class="sr-val" id="sim-pct" style="color:var(--red)">73%</span>
+            </div>
+            <div class="sr-row" style="margin-bottom:0">
+              <span class="sr-label" id="t-risk-lv">Risk Level</span>
+              <span class="pill pill-high" id="sim-risk">HIGH</span>
+            </div>
+            <div class="sr-desc" id="sim-desc">Road at high risk. Immediate treatment recommended.</div>
+          </div>
+          <div class="sim-formula" id="sim-formula">
+            dew_point = -1.5 - ((100-85)/5) = <span style="color:var(--ice)">-4.5°C</span><br>
+            freeze_idx = max(0,1.5) × 0.80 = <span style="color:var(--yellow)">1.20</span>
+          </div>
+          <div class="action-bar">
+            <button class="btn btn-primary" style="flex:1;font-size:11px" onclick="sendSimToPredict()" id="t-sim-send">Apply to Model</button>
+            <button class="btn btn-ghost" style="font-size:11px" onclick="resetSim()" id="t-sim-reset">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-analytics" style="display:none">
+      <div style="font-size:15px;font-weight:600;margin-bottom:14px" id="t-analytics-title">Analytics Overview</div>
+      <div class="row2" style="margin-bottom:14px">
+        <div class="chart-card">
+          <div class="cc-hdr">
+            <div><div class="cc-title" id="t-chart-daily">Daily Ice Events</div><div class="cc-sub">Last 7 days</div></div>
+            <div><div class="cc-metric red">14</div><div class="cc-msub" id="t-total">total</div></div>
+          </div>
+          <div class="chart-wrap" style="height:100px"><canvas id="chartDaily"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-hdr">
+            <div><div class="cc-title" id="t-chart-zone-dist">Zone Risk Distribution</div><div class="cc-sub">Current state</div></div>
+          </div>
+          <div class="chart-wrap" style="height:100px"><canvas id="chartZoneDist"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-hdr">
+            <div><div class="cc-title" id="t-chart-hourly">Hourly Freeze Index</div><div class="cc-sub">24h trend</div></div>
+            <div><div class="cc-metric yellow" id="val-fi-peak">1.8</div><div class="cc-msub" id="t-fi-peak-lbl">peak</div></div>
+          </div>
+          <div class="chart-wrap" style="height:100px"><canvas id="chartHourly"></canvas></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="chart-card">
+          <div class="cc-hdr" style="margin-bottom:14px">
+            <div><div class="cc-title" id="t-feat-importance">Feature Importance</div><div class="cc-sub">Random Forest model</div></div>
+          </div>
+          <div id="feat-bars"></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-hdr" style="margin-bottom:14px">
+            <div><div class="cc-title" id="t-model-metrics">Model Performance</div><div class="cc-sub">Classification report</div></div>
+          </div>
+          <div id="model-metrics-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-settings" style="display:none">
+      <div class="settings-card show">
+        <div style="font-size:14px;font-weight:600;margin-bottom:14px" id="t-settings-title">System Settings</div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="t-set-alerts">Alert notifications</div>
+            <div class="setting-sub" id="t-set-alerts-sub">Sound and visual alerts for high risk</div>
+          </div>
+          <label class="toggle-wrap"><input type="checkbox" class="toggle-input" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="t-set-auto">Auto-treatment deployment</div>
+            <div class="setting-sub" id="t-set-auto-sub">Auto deploy salt when risk > 0.85</div>
+          </div>
+          <label class="toggle-wrap"><input type="checkbox" class="toggle-input"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="t-set-live">Live sensor feed</div>
+            <div class="setting-sub" id="t-set-live-sub">Pull real data every 5 seconds</div>
+          </div>
+          <label class="toggle-wrap"><input type="checkbox" class="toggle-input" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="t-set-log">Sensor logging</div>
+            <div class="setting-sub" id="t-set-log-sub">Save readings to sensor_log.csv</div>
+          </div>
+          <label class="toggle-wrap"><input type="checkbox" class="toggle-input" checked><span class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="t-set-thresh-low">Low risk threshold</div>
+            <div class="setting-sub">Current: <span style="color:var(--green);font-family:var(--mono)">0.40</span></div>
+          </div>
+          <input type="range" min="0.1" max="0.6" step="0.05" value="0.4" style="width:120px" oninput="this.previousElementSibling.querySelector('span').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" id="t-set-thresh-high">High risk threshold</div>
+            <div class="setting-sub">Current: <span style="color:var(--red);font-family:var(--mono)">0.70</span></div>
+          </div>
+          <input type="range" min="0.5" max="0.95" step="0.05" value="0.7" style="width:120px" oninput="this.previousElementSibling.querySelector('span').textContent=parseFloat(this.value).toFixed(2)">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="model-modal" onclick="if(event.target===this)closeModal('model-modal')">
+  <div class="modal">
+    <div class="modal-title" id="t-ml-model-title">🧠 ML Model Details</div>
+    <div class="modal-row"><span class="modal-lbl">Algorithm</span><span class="modal-val" style="color:var(--ice)">Random Forest</span></div>
+    <div class="modal-row"><span class="modal-lbl">N Estimators</span><span class="modal-val">200</span></div>
+    <div class="modal-row"><span class="modal-lbl">Max Depth</span><span class="modal-val">10</span></div>
+    <div class="modal-row"><span class="modal-lbl">Min Samples Split</span><span class="modal-val">5</span></div>
+    <div class="modal-row"><span class="modal-lbl">Test Size</span><span class="modal-val">30%</span></div>
+    <div class="modal-row"><span class="modal-lbl">Accuracy</span><span class="modal-val" style="color:var(--green)">94.3%</span></div>
+    <div class="modal-row"><span class="modal-lbl">Features</span><span class="modal-val">5</span></div>
+    <div class="modal-row"><span class="modal-lbl">Low threshold</span><span class="modal-val" style="color:var(--green)">0.40</span></div>
+    <div class="modal-row"><span class="modal-lbl">High threshold</span><span class="modal-val" style="color:var(--red)">0.70</span></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" style="flex:1" onclick="closeModal('model-modal')" id="t-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="sensor-modal" onclick="if(event.target===this)closeModal('sensor-modal')">
+  <div class="modal">
+    <div class="modal-title" id="t-sensor-modal-title">🔬 Sensor Configuration</div>
+    <div class="modal-row"><span class="modal-lbl">Endpoint</span><span class="modal-val" style="color:var(--ice);font-size:11px">/ice_predict [POST]</span></div>
+    <div class="modal-row"><span class="modal-lbl">Server Port</span><span class="modal-val">5000</span></div>
+    <div class="modal-row"><span class="modal-lbl">Log File</span><span class="modal-val" style="font-size:11px">sensor_log.csv</span></div>
+    <div class="modal-row"><span class="modal-lbl">Arduino</span><span class="modal-val" style="color:var(--teal)">COM5 · DHT22</span></div>
+    <div class="modal-row"><span class="modal-lbl">Input: temperature</span><span class="modal-val" style="color:var(--text2)">float °C</span></div>
+    <div class="modal-row"><span class="modal-lbl">Input: humidity</span><span class="modal-val" style="color:var(--text2)">float 0–100</span></div>
+    <div class="modal-row"><span class="modal-lbl">Input: road_moisture</span><span class="modal-val" style="color:var(--text2)">float 0–1</span></div>
+    <div class="modal-row"><span class="modal-lbl">Output: probability</span><span class="modal-val" style="color:var(--ice)">float 0–1</span></div>
+    <div class="modal-row"><span class="modal-lbl">Output: risk_level</span><span class="modal-val" style="color:var(--ice)">LOW/MED/HIGH</span></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('sensor-modal')" id="t-close2">Close</button>
+      <button class="btn btn-primary" style="flex:1" onclick="closeModal('sensor-modal');fetchRealData()" id="t-test-sensor">Test Connection</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const T = {
+  en: {
+    subtitle: 'Road Ice Intelligence System v2.1', live: 'Live', alerts: 'Alerts',
+    'nav-main': 'Main', 'nav-map': 'Road Map', 'nav-analytics': 'Analytics',
+    'nav-alerts': 'Alerts', 'nav-ml': 'ML System', 'nav-model': 'ML Model',
+    'nav-sensors': 'Sensors', 'nav-settings': 'Settings', 'model-ver': 'Model version',
+    accuracy: 'Accuracy', 'page-title': 'Road Ice Monitoring — Baku',
+    'btn-export': '↓ Export CSV', 'btn-treat': '🧂 Deploy Treatment', 'btn-predict': '▶ Run Prediction',
+    'map-title': 'Live Risk Map · Baku Road Network', zones: '3 zones monitored',
+    temp: 'Temp', hum: 'Humidity', moist: 'Moisture', prob: 'Ice prob.', dew: 'Dew point',
+    'leg-low': 'Low risk', 'leg-med': 'Medium risk', 'leg-high': 'High risk',
+    'overall-risk': 'Overall Risk', 'gauge-sub': 'ice probability',
+    'zone-a': 'Zone A', 'zone-b': 'Zone B', 'zone-c': 'Zone C',
+    'dew-point': 'Dew Point', 'dew-trend': '↓ freezing', fi: 'Freeze Index', 'fi-trend': '↑ rising',
+    sensors: 'Active Sensors', 'sensors-ok': 'All online', acc: 'Accuracy', 'model-st': 'RF · 200 est.',
+    'chart-temp': 'Temperature', 'chart-temp-sub': 'Last 30 readings', now: 'now',
+    'chart-hum': 'Humidity', 'chart-hum-sub': 'Atmospheric %', avg: 'avg',
+    'chart-ice': 'Ice Probability', 'chart-ice-sub': 'ML model output', peak: 'peak',
+    'sensor-log': 'Sensor Log', updating: 'Updating every 5s · Live Arduino',
+    'th-time': 'Time', 'th-temp': 'Temp °C', 'th-hum': 'Hum %',
+    'th-moist': 'Moisture', 'th-fi': 'Freeze Idx', 'th-prob': 'Probability', 'th-risk': 'Risk',
+    'sim-title': '⚗ ML Simulator', 'sim-temp': 'Temperature (°C)',
+    'sim-hum': 'Humidity (%)', 'sim-moist': 'Road Moisture',
+    'ice-prob': 'Ice Probability', 'risk-lv': 'Risk Level',
+    'sim-send': 'Apply to Model', 'sim-reset': 'Reset', 'treat-btn': 'Treat Zone C',
+    'alerts-title': '⚠ Active Alerts', 'analytics-title': 'Analytics Overview',
+    'chart-daily': 'Daily Ice Events', total: 'total', 'chart-zone-dist': 'Zone Risk Distribution',
+    'chart-hourly': 'Hourly Freeze Index', 'fi-peak-lbl': 'peak',
+    'feat-importance': 'Feature Importance', 'model-metrics': 'Model Performance',
+    'settings-title': 'System Settings',
+    'set-alerts': 'Alert notifications', 'set-alerts-sub': 'Sound and visual alerts for high risk',
+    'set-auto': 'Auto-treatment deployment', 'set-auto-sub': 'Auto deploy salt when risk > 0.85',
+    'set-live': 'Live sensor feed', 'set-live-sub': 'Pull real data every 5 seconds',
+    'set-log': 'Sensor logging', 'set-log-sub': 'Save readings to sensor_log.csv',
+    'set-thresh-low': 'Low risk threshold', 'set-thresh-high': 'High risk threshold',
+    'ml-model-title': '🧠 ML Model Details', 'sensor-modal-title': '🔬 Sensor Configuration',
+    close: 'Close', close2: 'Close', 'test-sensor': 'Test Connection',
+    risks: { LOW: 'LOW', MEDIUM: 'MEDIUM', HIGH: 'HIGH' },
+    descs: {
+      LOW: 'Road conditions are safe. Standard monitoring continues.',
+      MEDIUM: 'Caution advised. Preventive salting recommended.',
+      HIGH: 'Danger! Immediate road treatment required. Alert activated.'
+    },
+    zones_info: { A: 'Zone A — Safe', B: 'Zone B — Caution', C: 'Zone C — DANGER' }
+  },
+  ru: {
+    subtitle: 'Система мониторинга обледенения v2.1', live: 'Онлайн', alerts: 'Сигналы',
+    'nav-main': 'Главное', 'nav-map': 'Карта дорог', 'nav-analytics': 'Аналитика',
+    'nav-alerts': 'Оповещения', 'nav-ml': 'ML Система', 'nav-model': 'ML Модель',
+    'nav-sensors': 'Датчики', 'nav-settings': 'Настройки', 'model-ver': 'Версия модели',
+    accuracy: 'Точность', 'page-title': 'Мониторинг обледенения — Баку',
+    'btn-export': '↓ Экспорт CSV', 'btn-treat': '🧂 Обработка дорог', 'btn-predict': '▶ Прогноз',
+    'map-title': 'Карта рисков · Сеть дорог Баку', zones: '3 зоны наблюдения',
+    temp: 'Темп.', hum: 'Влажность', moist: 'Влажность дор.', prob: 'Вер-ть льда', dew: 'Точка росы',
+    'leg-low': 'Низкий риск', 'leg-med': 'Средний риск', 'leg-high': 'Высокий риск',
+    'overall-risk': 'Общий риск', 'gauge-sub': 'вероятность льда',
+    'zone-a': 'Зона A', 'zone-b': 'Зона B', 'zone-c': 'Зона C',
+    'dew-point': 'Точка росы', 'dew-trend': '↓ зона замерз.', fi: 'Инд. замерз.', 'fi-trend': '↑ растёт',
+    sensors: 'Датчики', 'sensors-ok': 'Все онлайн', acc: 'Точность', 'model-st': 'RF · 200 дер.',
+    'chart-temp': 'Температура', 'chart-temp-sub': 'Последние 30 показ.', now: 'сейчас',
+    'chart-hum': 'Влажность', 'chart-hum-sub': 'Атм. влажность %', avg: 'среднее',
+    'chart-ice': 'Вероятность льда', 'chart-ice-sub': 'Выход ML модели', peak: 'пик',
+    'sensor-log': 'Лог датчиков', updating: 'Обновление каждые 5с · Arduino Live',
+    'th-time': 'Время', 'th-temp': 'Темп °C', 'th-hum': 'Влажн. %',
+    'th-moist': 'Влажн. дор.', 'th-fi': 'Инд. замерз.', 'th-prob': 'Вероятность', 'th-risk': 'Риск',
+    'sim-title': '⚗ ML Симулятор', 'sim-temp': 'Температура (°C)',
+    'sim-hum': 'Влажность (%)', 'sim-moist': 'Влажность дороги',
+    'ice-prob': 'Вероятность льда', 'risk-lv': 'Уровень риска',
+    'sim-send': 'Применить к модели', 'sim-reset': 'Сбросить', 'treat-btn': 'Обработать Зону C',
+    'alerts-title': '⚠ Активные сигналы', 'analytics-title': 'Обзор аналитики',
+    'chart-daily': 'События обледенения', total: 'всего', 'chart-zone-dist': 'Распределение риска',
+    'chart-hourly': 'Индекс замерзания (24ч)', 'fi-peak-lbl': 'пик',
+    'feat-importance': 'Важность признаков', 'model-metrics': 'Метрики модели',
+    'settings-title': 'Настройки системы',
+    'set-alerts': 'Уведомления', 'set-alerts-sub': 'Звук и визуал при высоком риске',
+    'set-auto': 'Автоматическая обработка', 'set-auto-sub': 'Авто-посыпка при риске > 0.85',
+    'set-live': 'Поток датчиков', 'set-live-sub': 'Данные каждые 5 секунд',
+    'set-log': 'Логирование датчиков', 'set-log-sub': 'Запись в sensor_log.csv',
+    'set-thresh-low': 'Порог низкого риска', 'set-thresh-high': 'Порог высокого риска',
+    'ml-model-title': '🧠 Детали ML модели', 'sensor-modal-title': '🔬 Конфигурация датчиков',
+    close: 'Закрыть', close2: 'Закрыть', 'test-sensor': 'Тест подключения',
+    risks: { LOW: 'НИЗКИЙ', MEDIUM: 'СРЕДНИЙ', HIGH: 'ВЫСОКИЙ' },
+    descs: {
+      LOW: 'Дорожные условия безопасны. Стандартный мониторинг продолжается.',
+      MEDIUM: 'Рекомендуется осторожность. Превентивная посыпка солью.',
+      HIGH: 'Опасность! Требуется немедленная обработка. Сигнал тревоги!'
+    },
+    zones_info: { A: 'Зона A — Безопасно', B: 'Зона B — Осторожно', C: 'Зона C — ОПАСНО' }
+  }
+};
+let lang = 'en';
+
+function setLang(l) {
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0&&l==='en')||(i===1&&l==='ru'));
+  });
+  const t = T[l];
+  const ids = Object.keys(t).filter(k => k !== 'risks' && k !== 'descs' && k !== 'zones_info');
+  ids.forEach(id => {
+    const el = document.getElementById('t-'+id);
+    if (el && typeof t[id] === 'string') el.textContent = t[id];
+  });
+  simulate();
+  renderAlerts();
+}
+
+function computePrediction(temp, hum, moist) {
+  const dewPoint = temp - ((100 - hum) / 5);
+  const freezeIdx = Math.max(0, -temp) * moist;
+  let prob = 0;
+  if (temp < 0) prob += 0.35 * Math.min(1, Math.abs(temp) / 5);
+  if (dewPoint < 0) prob += 0.25 * Math.min(1, Math.abs(dewPoint) / 5);
+  prob += 0.2 * moist;
+  prob += 0.15 * Math.min(1, hum / 100);
+  if (freezeIdx > 0) prob += 0.05 * Math.min(1, freezeIdx / 3);
+  prob = Math.max(0, Math.min(0.99, prob));
+  return { prob, dewPoint, freezeIdx };
+}
+
+function getRisk(prob) {
+  if (prob > 0.7) return 'HIGH';
+  if (prob > 0.4) return 'MEDIUM';
+  return 'LOW';
+}
+
+function selectZone(z) {
+  const t = T[lang];
+  const riskColors = { LOW: 'var(--green)', MEDIUM: 'var(--yellow)', HIGH: 'var(--red)' };
+  if (lastRealData) {
+    const temp = parseFloat(lastRealData.temperature);
+    const hum = parseFloat(lastRealData.humidity);
+    const moist = parseFloat(lastRealData.road_moisture) || 0.75;
+    const { prob, dewPoint } = computePrediction(temp, hum, moist);
+    const risk = getRisk(prob);
+    document.getElementById('zone-title').textContent = t.zones_info[z] || ('Zone ' + z);
+    document.getElementById('zone-title').style.color = riskColors[risk];
+    document.getElementById('zone-temp').textContent = temp.toFixed(1) + '°C';
+    document.getElementById('zone-hum').textContent = hum.toFixed(0) + '%';
+    document.getElementById('zone-moist').textContent = moist.toFixed(2);
+    document.getElementById('zone-prob').textContent = Math.round(prob * 100) + '%';
+    document.getElementById('zone-prob').style.color = riskColors[risk];
+    document.getElementById('zone-dew').textContent = dewPoint.toFixed(1) + '°C';
+  }
+}
+
+function simulate() {
+  const temp = parseFloat(document.getElementById('sim-temp').value);
+  const hum = parseFloat(document.getElementById('sim-hum').value);
+  const moist = parseFloat(document.getElementById('sim-moist').value);
+  document.getElementById('sim-temp-val').textContent = temp.toFixed(1) + '°C';
+  document.getElementById('sim-hum-val').textContent = hum.toFixed(0) + '%';
+  document.getElementById('sim-moist-val').textContent = moist.toFixed(2);
+  const { prob, dewPoint, freezeIdx } = computePrediction(temp, hum, moist);
+  const pct = Math.round(prob * 100);
+  const risk = getRisk(prob);
+  const t = T[lang];
+  const colors = { LOW: 'var(--green)', MEDIUM: 'var(--yellow)', HIGH: 'var(--red)' };
+  const pc = { LOW: 'pill-low', MEDIUM: 'pill-med', HIGH: 'pill-high' };
+  document.getElementById('sim-pct').textContent = pct + '%';
+  document.getElementById('sim-pct').style.color = colors[risk];
+  const re = document.getElementById('sim-risk');
+  re.className = 'pill ' + pc[risk];
+  re.textContent = t.risks[risk];
+  document.getElementById('sim-desc').textContent = t.descs[risk];
+  document.getElementById('sim-formula').innerHTML =
+    `dew_point = ${temp.toFixed(1)} - ((100-${hum.toFixed(0)})/5) = <span style="color:var(--ice)">${dewPoint.toFixed(2)}°C</span><br>` +
+    `freeze_idx = max(0,${(-temp).toFixed(2)}) × ${moist.toFixed(2)} = <span style="color:var(--yellow)">${freezeIdx.toFixed(2)}</span>`;
+}
+
+function resetSim() {
+  document.getElementById('sim-temp').value = -1.5;
+  document.getElementById('sim-hum').value = 85;
+  document.getElementById('sim-moist').value = 0.8;
+  simulate();
+}
+
+function sendSimToPredict() {
+  const temp = parseFloat(document.getElementById('sim-temp').value);
+  const hum = parseFloat(document.getElementById('sim-hum').value);
+  const moist = parseFloat(document.getElementById('sim-moist').value);
+  const { prob } = computePrediction(temp, hum, moist);
+  updateGauge(prob * 100);
+  updateTimestamp();
+  showNotif('Simulation applied to model');
+}
+
+let chartTemp, chartHum, chartIce, chartDaily, chartZone, chartHourly;
+const chartColors = { ice: '#38bdf8', yellow: '#eab308', red: '#ef4444', green: '#22c55e', teal: '#14b8a6' };
+
+function makeSparkline(id, data, color) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return null;
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.map(() => ''),
+      datasets: [{ data, borderColor: color, borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: color + '15' }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      scales: { x: { display: false }, y: { display: false } },
+      animation: false
+    }
+  });
+}
+
+function initCharts() {
+  chartTemp = makeSparkline('chartTemp', Array(30).fill(null), chartColors.ice);
+  chartHum = makeSparkline('chartHum', Array(30).fill(null), chartColors.yellow);
+  chartIce = makeSparkline('chartIce', Array(30).fill(null), chartColors.red);
+
+  const dCtx = document.getElementById('chartDaily');
+  if (dCtx) {
+    chartDaily = new Chart(dCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{ data: [2, 3, 1, 4, 2, 0, 2], backgroundColor: chartColors.red + 'aa', borderRadius: 3 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#4a5e72', font: { size: 10 } }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: '#4a5e72', font: { size: 10 } }, grid: { color: '#1a2233' }, border: { display: false } }
+        },
+        animation: false
+      }
+    });
+  }
+
+  const zCtx = document.getElementById('chartZoneDist');
+  if (zCtx) {
+    chartZone = new Chart(zCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Low', 'Medium', 'High'],
+        datasets: [{ data: [28, 54, 18], backgroundColor: [chartColors.green + 'cc', chartColors.yellow + 'cc', chartColors.red + 'cc'], borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: true, position: 'right', labels: { color: '#7a8fa8', font: { size: 10 }, boxWidth: 10 } } },
+        animation: false
+      }
+    });
+  }
+
+  const hCtx = document.getElementById('chartHourly');
+  if (hCtx) {
+    chartHourly = new Chart(hCtx, {
+      type: 'line',
+      data: {
+        labels: Array.from({ length: 24 }, (_, i) => i + 'h'),
+        datasets: [{ data: Array(24).fill(0), borderColor: chartColors.yellow, borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: chartColors.yellow + '15' }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#4a5e72', font: { size: 9 }, maxTicksLimit: 8 }, grid: { display: false }, border: { display: false } },
+          y: { ticks: { color: '#4a5e72', font: { size: 9 } }, grid: { color: '#1a2233' }, border: { display: false } }
+        },
+        animation: false
+      }
+    });
+  }
+}
+
+function renderFeatureImportance() {
+  const features = [
+    { name: 'freezing_index', val: 0.42 }, { name: 'dew_point', val: 0.28 },
+    { name: 'temperature', val: 0.16 }, { name: 'road_moisture', val: 0.09 }, { name: 'humidity', val: 0.05 },
+  ];
+  const colors = ['#38bdf8', '#14b8a6', '#22c55e', '#eab308', '#7a8fa8'];
+  const container = document.getElementById('feat-bars');
+  if (!container) return;
+  container.innerHTML = features.map((f, i) => `
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;font-family:'IBM Plex Mono'">
+        <span style="color:var(--text2)">${f.name}</span>
+        <span style="color:${colors[i]};font-weight:600">${(f.val*100).toFixed(0)}%</span>
+      </div>
+      <div style="height:4px;background:var(--bg5);border-radius:2px;overflow:hidden">
+        <div style="height:100%;width:${f.val*100}%;background:${colors[i]};border-radius:2px;transition:width 0.6s"></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderModelMetrics() {
+  const metrics = [
+    { label: 'Accuracy', val: '94.3%', color: '#22c55e' },
+    { label: 'Precision (HIGH)', val: '91.2%', color: '#ef4444' },
+    { label: 'Recall (HIGH)', val: '89.7%', color: '#eab308' },
+    { label: 'F1 Score', val: '0.904', color: '#38bdf8' },
+    { label: 'Train samples', val: '14,000', color: '#7a8fa8' },
+    { label: 'Test samples', val: '6,000', color: '#7a8fa8' },
+  ];
+  const container = document.getElementById('model-metrics-list');
+  if (!container) return;
+  container.innerHTML = metrics.map(m => `
+    <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px">
+      <span style="color:var(--text3);font-family:'IBM Plex Mono'">${m.label}</span>
+      <span style="font-weight:700;font-family:'IBM Plex Mono';color:${m.color}">${m.val}</span>
+    </div>`).join('');
+}
+
+// ─── REAL DATA TABLE ───
+function buildRealTable(rows) {
+  const tbody = document.getElementById('sensor-tbody');
+  const t = T[lang];
+  const pc = { LOW: 'pill-low', MEDIUM: 'pill-med', HIGH: 'pill-high' };
+  const bc = { LOW: chartColors.green, MEDIUM: chartColors.yellow, HIGH: chartColors.red };
+
+  // показываем последние 12 строк в обратном порядке
+  const slice = rows.slice(-12).reverse();
+  tbody.innerHTML = slice.map(row => {
+    const temp = parseFloat(row.temperature);
+    const hum = parseFloat(row.humidity);
+    const moist = parseFloat(row.road_moisture) || 0.75;
+    const ts = row.timestamp || '—';
+    const { prob, freezeIdx } = computePrediction(temp, hum, moist);
+    const pct = Math.round(prob * 100);
+    const risk = getRisk(prob);
+    return `<tr>
+      <td style="color:var(--text3)">${ts}</td>
+      <td style="color:var(--ice)">${temp.toFixed(1)}</td>
+      <td>${hum.toFixed(0)}</td>
+      <td>${moist.toFixed(2)}</td>
+      <td style="color:var(--yellow)">${freezeIdx.toFixed(2)}</td>
+      <td>
+        <div class="prob-bar-wrap">
+          <div class="prob-bar"><div class="prob-fill" style="width:${pct}%;background:${bc[risk]}"></div></div>
+          <span style="font-size:11px;font-weight:600;min-width:30px">${pct}%</span>
+        </div>
+      </td>
+      <td><span class="pill ${pc[risk]}">${t.risks[risk]}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateGauge(pct) {
+  const max = 147.65;
+  const offset = max - (pct / 100) * max;
+  const arc = document.getElementById('gauge-arc');
+  const numEl = document.getElementById('gauge-pct');
+  const badge = document.getElementById('risk-badge');
+  if (!arc) return;
+  arc.setAttribute('stroke-dashoffset', offset.toFixed(2));
+  numEl.textContent = Math.round(pct) + '%';
+  const prob = pct / 100;
+  const risk = getRisk(prob);
+  const colors = { LOW: chartColors.green, MEDIUM: chartColors.yellow, HIGH: chartColors.red };
+  const bc = { LOW: 'rb-low', MEDIUM: 'rb-medium', HIGH: 'rb-high' };
+  arc.setAttribute('stroke', colors[risk]);
+  badge.textContent = T[lang].risks[risk];
+  badge.className = 'risk-badge ' + bc[risk];
+}
+
+function runPrediction() {
+  fetchRealData();
+  showNotif('Fetching real Arduino data...');
+}
+
+let treatmentActive = false;
+function activateTreatment() {
+  treatmentActive = !treatmentActive;
+  const indicator = document.getElementById('treatment-indicator');
+  if (indicator) indicator.style.opacity = treatmentActive ? '1' : '0';
+  const btn = document.getElementById('t-btn-treat');
+  if (treatmentActive) {
+    btn.textContent = '✓ Treatment Active';
+    btn.style.background = 'var(--green2)';
+    btn.style.color = '#fff';
+    showNotif('🧂 Salt treatment deployed on Zone C');
+  } else {
+    btn.textContent = T[lang]['btn-treat'];
+    btn.style.background = '';
+    btn.style.color = '';
+    if (indicator) indicator.style.opacity = '0';
+  }
+}
+
+let alertsVisible = false;
+const alertsData = [
+  { icon: '🔴', title: { en: 'Critical: Zone C ice probability 81%', ru: 'Критично: Зона C вероятность льда 81%' }, sub: 'Khagani St · Sector 3', time: '09:42' },
+  { icon: '🟡', title: { en: 'Medium: Zone B rising freeze index', ru: 'Средне: Зона B рост индекса замерз.' }, sub: 'Nizami Ave · Sector 7', time: '09:38' },
+  { icon: '⚠', title: { en: 'Sensor B humidity > 89% threshold', ru: 'Датчик B влажность > 89%' }, sub: 'Sensor ID: 07-B', time: '09:35' },
+];
+
+function renderAlerts() {
+  const list = document.getElementById('alerts-list');
+  list.innerHTML = alertsData.map(a => `
+    <div class="alert-item">
+      <span class="alert-ico">${a.icon}</span>
+      <div class="alert-txt">
+        <div class="alert-title">${a.title[lang]}</div>
+        <div class="alert-sub">${a.sub}</div>
+      </div>
+      <div class="alert-time">${a.time}</div>
+    </div>`).join('');
+}
+
+function toggleAlerts() {
+  alertsVisible = !alertsVisible;
+  document.getElementById('alerts-panel').classList.toggle('show', alertsVisible);
+}
+
+let notifTimeout;
+function showNotif(msg) {
+  let notif = document.getElementById('notif');
+  if (!notif) {
+    notif = document.createElement('div');
+    notif.id = 'notif';
+    notif.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#1a2233;border:1px solid rgba(56,189,248,0.4);color:#e8eef5;padding:10px 16px;border-radius:8px;font-size:12px;font-family:IBM Plex Mono,monospace;z-index:999;transition:opacity 0.3s;max-width:300px;line-height:1.4';
+    document.body.appendChild(notif);
+  }
+  notif.textContent = msg;
+  notif.style.opacity = '1';
+  clearTimeout(notifTimeout);
+  notifTimeout = setTimeout(() => { notif.style.opacity = '0'; }, 3000);
+}
+
+function showView(view) {
+  ['dashboard', 'analytics', 'settings'].forEach(v => {
+    document.getElementById('view-' + v).style.display = v === view ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const viewIndex = { dashboard: 0, analytics: 1, settings: 5 };
+  document.querySelectorAll('.nav-item')[viewIndex[view] || 0].classList.add('active');
+  if (view === 'analytics') setTimeout(() => { initAnalyticsCharts(); }, 50);
+}
+
+let analyticsInited = false;
+function initAnalyticsCharts() {
+  if (analyticsInited) return;
+  analyticsInited = true;
+  renderFeatureImportance();
+  renderModelMetrics();
+}
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function updateTimestamp() {
+  const now = new Date();
+  const ts = [now.getHours(), now.getMinutes(), now.getSeconds()].map(n => String(n).padStart(2, '0')).join(':');
+  const el = document.getElementById('last-update');
+  if (el) el.textContent = ts;
+  document.getElementById('clock').textContent = ts;
+}
+
+function exportData() {
+  const rows = [['Time', 'Temp', 'Humidity', 'Moisture', 'FreezeIdx', 'Probability', 'Risk']];
+  document.querySelectorAll('#sensor-tbody tr').forEach(tr => {
+    const cells = [...tr.querySelectorAll('td')];
+    const prob = cells[5] && cells[5].querySelector('span') ? cells[5].querySelector('span').textContent : '';
+    const risk = cells[6] && cells[6].querySelector('span') ? cells[6].querySelector('span').textContent : '';
+    rows.push([cells[0].textContent, cells[1].textContent, cells[2].textContent, cells[3].textContent, cells[4].textContent, prob, risk]);
+  });
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'azeco_sensor_log.csv';
+  a.click();
+  showNotif('Exported sensor_log.csv');
+}
+
+// ─── РЕАЛЬНЫЕ ДАННЫЕ С ARDUINO ───
+let lastRealData = null;
+
+async function fetchRealData() {
+  try {
+    const res = await fetch('/sensor_log');
+    const rows = await res.json();
+    if (!rows || rows.length === 0) return;
+
+    // CSV колонки: temperature, humidity, timestamp, road_moisture
+    const last = rows[rows.length - 1];
+    const temp = parseFloat(last.temperature);
+    const hum = parseFloat(last.humidity);
+    const ts = last.timestamp || '—';
+    const moist = parseFloat(last.road_moisture) || 0.75;
+
+    if (isNaN(temp) || isNaN(hum)) return;
+
+    lastRealData = { temperature: temp, humidity: hum, timestamp: ts, road_moisture: moist };
+
+    const { prob, dewPoint, freezeIdx } = computePrediction(temp, hum, moist);
+    const pct = Math.round(prob * 100);
+
+    // Обновляем графики
+    if (chartTemp) {
+      chartTemp.data.datasets[0].data.push(temp);
+      chartTemp.data.datasets[0].data.shift();
+      chartTemp.update('none');
+    }
+    if (chartHum) {
+      chartHum.data.datasets[0].data.push(hum);
+      chartHum.data.datasets[0].data.shift();
+      chartHum.update('none');
+    }
+    if (chartIce) {
+      chartIce.data.datasets[0].data.push(prob);
+      chartIce.data.datasets[0].data.shift();
+      chartIce.update('none');
+    }
+
+    // Обновляем метрики над графиками
+    const tNow = document.getElementById('val-temp-now');
+    const hNow = document.getElementById('val-hum-now');
+    const iNow = document.getElementById('val-ice-now');
+    if (tNow) tNow.textContent = temp.toFixed(1) + '°C';
+    if (hNow) hNow.textContent = hum.toFixed(0) + '%';
+    if (iNow) iNow.textContent = pct + '%';
+
+    // Обновляем мини-карточки
+    const dewEl = document.getElementById('val-dew');
+    const fiEl = document.getElementById('val-fi');
+    if (dewEl) dewEl.textContent = dewPoint.toFixed(1) + '°';
+    if (fiEl) fiEl.textContent = freezeIdx.toFixed(2);
+
+    // Обновляем gauge
+    updateGauge(pct);
+
+    // Обновляем zone pills — одна зона реальная (A), остальные расчётные вариации
+    const zaEl = document.getElementById('za-val');
+    const zbEl = document.getElementById('zb-val');
+    const zcEl = document.getElementById('zc-val');
+    if (zaEl) zaEl.textContent = pct + '%';
+    if (zbEl) zbEl.textContent = Math.min(99, pct + 5) + '%';
+    if (zcEl) zcEl.textContent = Math.min(99, pct + 10) + '%';
+
+    // Обновляем таблицу реальными данными
+    buildRealTable(rows);
+
+    // Обновляем map info box
+    document.getElementById('zone-temp').textContent = temp.toFixed(1) + '°C';
+    document.getElementById('zone-hum').textContent = hum.toFixed(0) + '%';
+    document.getElementById('zone-moist').textContent = moist.toFixed(2);
+    document.getElementById('zone-prob').textContent = pct + '%';
+    document.getElementById('zone-dew').textContent = dewPoint.toFixed(1) + '°C';
+
+    updateTimestamp();
+  } catch(e) {
+    // сервер недоступен — молчим
+  }
+}
+
+setInterval(fetchRealData, 5000);
+fetchRealData();
+
+// ─── INIT ───
+initCharts();
+simulate();
+renderAlerts();
+updateTimestamp();
+
+// ─── CAR ANIMATION ───
+(function() {
+  const routeA = [
+    {x:120,y:95},{x:182,y:95},{x:245,y:95},{x:245,y:145},{x:245,y:95},
+    {x:182,y:95},{x:120,y:95},{x:120,y:150},{x:120,y:200},{x:120,y:150},{x:120,y:95}
+  ];
+  const routeB = [
+    {x:245,y:150},{x:245,y:200},{x:355,y:200},{x:300,y:200},{x:245,y:200},
+    {x:245,y:150},{x:310,y:150},{x:355,y:150},{x:310,y:150},{x:245,y:150}
+  ];
+  const routeC = [
+    {x:355,y:95},{x:412,y:95},{x:470,y:95},{x:412,y:95},{x:355,y:95},
+    {x:355,y:95},{x:355,y:150},{x:355,y:95},{x:412,y:95},{x:470,y:95},{x:412,y:95}
+  ];
+  const cars = [
+    { id:'car-A', route:routeA, color:'#22c55e', saltColor:'rgba(56,189,248,', speed:0.6, t:0 },
+    { id:'car-B', route:routeB, color:'#eab308', saltColor:'rgba(234,179,8,', speed:0.5, t:0.33 },
+    { id:'car-C', route:routeC, color:'#ef4444', saltColor:'rgba(239,68,68,', speed:0.8, t:0.66 }
+  ];
+  const particles = [];
+  const MAX_PARTICLES = 180;
+
+  function spawnSalt(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 0.4 + Math.random() * 1.4;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle) * speed * (0.5 + Math.random()),
+        vy: Math.sin(angle) * speed * 0.4 - 0.8,
+        life: 1.0,
+        decay: 0.025 + Math.random() * 0.03,
+        size: 1.2 + Math.random() * 2.2,
+        color
+      });
+    }
+    if (particles.length > MAX_PARTICLES) particles.splice(0, particles.length - MAX_PARTICLES);
+  }
+
+  const svgEl = document.querySelector('.map-svg');
+  const canvas = document.getElementById('salt-canvas');
+  const ctx = canvas ? canvas.getContext('2d') : null;
+
+  function lerp(a, b, t) { return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+
+  const carOffsets = { 'car-A': {x:-11,y:-7}, 'car-B': {x:-11,y:-7}, 'car-C': {x:-12,y:-8} };
+  let beaconPhase = 0;
+  let lastTime = null;
+
+  function animate(timestamp) {
+    if (!lastTime) lastTime = timestamp;
+    const dt = Math.min((timestamp - lastTime) / 16, 3);
+    lastTime = timestamp;
+    beaconPhase += dt * 0.08;
+    if (ctx) ctx.clearRect(0, 0, 640, 300);
+
+    cars.forEach(car => {
+      const el = document.getElementById(car.id);
+      if (!el) return;
+      const route = car.route;
+      const wLen = route.length;
+      car.t += dt * car.speed * 0.0025;
+      if (car.t >= 1) car.t -= 1;
+      const totalSegs = wLen - 1;
+      const tScaled = car.t * totalSegs;
+      const seg = Math.floor(tScaled) % totalSegs;
+      const tLocal = tScaled - Math.floor(tScaled);
+      const pos = lerp(route[seg], route[seg + 1], tLocal);
+      const nextT = Math.min(tLocal + 0.05, 1);
+      const ahead = lerp(route[seg], route[seg + 1], nextT);
+      const dx = ahead.x - pos.x;
+      const dy = ahead.y - pos.y;
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      const off = carOffsets[car.id];
+      const scale = 0.85 + (pos.y / 300) * 0.25;
+      el.setAttribute('transform', `translate(${pos.x + off.x}, ${pos.y + off.y}) rotate(${angle}, ${-off.x}, ${-off.y}) scale(${scale})`);
+      const backX = pos.x - Math.cos(angle * Math.PI / 180) * 8;
+      const backY = pos.y - Math.sin(angle * Math.PI / 180) * 8;
+      spawnSalt(backX, backY, car.saltColor, car.id === 'car-C' ? 4 : 2);
+    });
+
+    const beaconLight = document.getElementById('beacon-light-C');
+    if (beaconLight) {
+      const blink = (Math.sin(beaconPhase * 6) > 0) ? 1 : 0.15;
+      beaconLight.setAttribute('opacity', blink.toString());
+      beaconLight.setAttribute('fill', blink > 0.5 ? '#ff4444' : '#ff9999');
+    }
+
+    if (ctx) {
+      const svgRect = svgEl ? svgEl.getBoundingClientRect() : null;
+      const scaleX = svgRect ? svgRect.width / 640 : 1;
+      const scaleY = svgRect ? svgRect.height / 300 : 1;
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.vy += 0.06; p.life -= p.decay;
+        if (p.life <= 0) { particles.splice(i, 1); continue; }
+        ctx.save();
+        ctx.globalAlpha = p.life * 0.85;
+        ctx.fillStyle = p.color + p.life.toFixed(2) + ')';
+        ctx.beginPath();
+        const cx = p.x * scaleX;
+        const cy = p.y * scaleY;
+        const sz = p.size * scaleX;
+        ctx.arc(cx, cy, sz, 0, Math.PI * 2);
+        ctx.fill();
+        if (p.size > 2) {
+          ctx.strokeStyle = 'rgba(255,255,255,' + (p.life * 0.6).toFixed(2) + ')';
+          ctx.lineWidth = 0.5;
+          ctx.beginPath();
+          ctx.moveTo(cx - sz, cy); ctx.lineTo(cx + sz, cy);
+          ctx.moveTo(cx, cy - sz); ctx.lineTo(cx, cy + sz);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  ['car-A','car-B','car-C'].forEach((id, i) => {
+    const el = document.getElementById(id);
+    const zoneNames = ['Zone A Patrol','Zone B Patrol','Zone C Treatment'];
+    if (el) {
+      el.style.cursor = 'pointer';
+      el.addEventListener('mouseenter', () => { showNotif('🚛 AzEco.Ai Unit ' + (i+1) + ' — ' + zoneNames[i]); });
+    }
+  });
+
+  requestAnimationFrame(animate);
+
+  const legend = document.querySelector('.map-legend');
+  if (legend) {
+    const carLegRow = document.createElement('div');
+    carLegRow.className = 'leg-row';
+    carLegRow.style.cssText = 'margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.07)';
+    carLegRow.innerHTML = '<span style="font-size:11px">🚛</span><span style="color:#7a8fa8;font-size:10px">Treatment units (3)</span>';
+    legend.appendChild(carLegRow);
+  }
+})();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done"

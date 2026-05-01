@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>__main__.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #7a7e85;}
+.s3 { color: #bcbec4;}
+.s4 { color: #2aacb8;}
+.s5 { color: #6aab73;}
+.ln { color: #4b5059; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+__main__.py</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">import </span><span class="s1">os</span>
+<a name="l2"><span class="ln">2    </span></a><span class="s0">import </span><span class="s1">sys</span>
+<a name="l3"><span class="ln">3    </span></a>
+<a name="l4"><span class="ln">4    </span></a><span class="s2"># Remove '' and current working directory from the first entry</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s2"># of sys.path, if present to avoid using current directory</span>
+<a name="l6"><span class="ln">6    </span></a><span class="s2"># in pip commands check, freeze, install, list and show,</span>
+<a name="l7"><span class="ln">7    </span></a><span class="s2"># when invoked as python -m pip &lt;command&gt;</span>
+<a name="l8"><span class="ln">8    </span></a><span class="s0">if </span><span class="s1">sys</span><span class="s3">.</span><span class="s1">path</span><span class="s3">[</span><span class="s4">0</span><span class="s3">] </span><span class="s0">in </span><span class="s3">(</span><span class="s5">&quot;&quot;</span><span class="s3">, </span><span class="s1">os</span><span class="s3">.</span><span class="s1">getcwd</span><span class="s3">()):</span>
+<a name="l9"><span class="ln">9    </span></a>    <span class="s1">sys</span><span class="s3">.</span><span class="s1">path</span><span class="s3">.</span><span class="s1">pop</span><span class="s3">(</span><span class="s4">0</span><span class="s3">)</span>
+<a name="l10"><span class="ln">10   </span></a>
+<a name="l11"><span class="ln">11   </span></a><span class="s2"># If we are running from a wheel, add the wheel to sys.path</span>
+<a name="l12"><span class="ln">12   </span></a><span class="s2"># This allows the usage python pip-*.whl/pip install pip-*.whl</span>
+<a name="l13"><span class="ln">13   </span></a><span class="s0">if </span><span class="s1">__package__ </span><span class="s3">== </span><span class="s5">&quot;&quot;</span><span class="s3">:</span>
+<a name="l14"><span class="ln">14   </span></a>    <span class="s2"># __file__ is pip-*.whl/pip/__main__.py</span>
+<a name="l15"><span class="ln">15   </span></a>    <span class="s2"># first dirname call strips of '/__main__.py', second strips off '/pip'</span>
+<a name="l16"><span class="ln">16   </span></a>    <span class="s2"># Resulting path is the name of the wheel itself</span>
+<a name="l17"><span class="ln">17   </span></a>    <span class="s2"># Add that to sys.path so we can import pip</span>
+<a name="l18"><span class="ln">18   </span></a>    <span class="s1">path </span><span class="s3">= </span><span class="s1">os</span><span class="s3">.</span><span class="s1">path</span><span class="s3">.</span><span class="s1">dirname</span><span class="s3">(</span><span class="s1">os</span><span class="s3">.</span><span class="s1">path</span><span class="s3">.</span><span class="s1">dirname</span><span class="s3">(</span><span class="s1">__file__</span><span class="s3">))</span>
+<a name="l19"><span class="ln">19   </span></a>    <span class="s1">sys</span><span class="s3">.</span><span class="s1">path</span><span class="s3">.</span><span class="s1">insert</span><span class="s3">(</span><span class="s4">0</span><span class="s3">, </span><span class="s1">path</span><span class="s3">)</span>
+<a name="l20"><span class="ln">20   </span></a>
+<a name="l21"><span class="ln">21   </span></a><span class="s0">if </span><span class="s1">__name__ </span><span class="s3">== </span><span class="s5">&quot;__main__&quot;</span><span class="s3">:</span>
+<a name="l22"><span class="ln">22   </span></a>    <span class="s0">from </span><span class="s1">pip</span><span class="s3">.</span><span class="s1">_internal</span><span class="s3">.</span><span class="s1">cli</span><span class="s3">.</span><span class="s1">main </span><span class="s0">import </span><span class="s1">main </span><span class="s0">as </span><span class="s1">_main</span>
+<a name="l23"><span class="ln">23   </span></a>
+<a name="l24"><span class="ln">24   </span></a>    <span class="s1">sys</span><span class="s3">.</span><span class="s1">exit</span><span class="s3">(</span><span class="s1">_main</span><span class="s3">())</span>
+<a name="l25"><span class="ln">25   </span></a></pre>
+</body>
+</html>

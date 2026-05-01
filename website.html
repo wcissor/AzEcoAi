@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AzEco.Ai — Road Ice Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --night: #050810;
+  --void: #080c14;
+  --deep: #0c1220;
+  --surface: #111827;
+  --panel: #162032;
+  --rim: rgba(255,255,255,0.06);
+  --rim2: rgba(255,255,255,0.11);
+
+  --ice: #38bdf8;
+  --ice-dim: #0ea5e9;
+  --ice-ghost: rgba(56,189,248,0.08);
+  --ice-glow: rgba(56,189,248,0.25);
+
+  --cryo: #14b8a6;
+  --danger: #ef4444;
+  --warn: #eab308;
+  --safe: #22c55e;
+
+  --text: #e8edf5;
+  --muted: #6b80a0;
+  --hint: #3a4e66;
+
+  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16,1,0.3,1);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--night);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+*, *::before, *::after { cursor: none !important; }
+#cursor {
+  position: fixed;
+  width: 12px; height: 12px;
+  background: var(--ice);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: width 0.2s, height 0.2s, background 0.2s, opacity 0.2s;
+  mix-blend-mode: screen;
+}
+#cursor-ring {
+  position: fixed;
+  width: 36px; height: 36px;
+  border: 1px solid rgba(56,189,248,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: all 0.12s var(--ease-out-expo);
+}
+
+
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 8000;
+  opacity: 0.45;
+}
+
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 1000;
+  padding: 0 48px;
+  height: 68px;
+  display: flex; align-items: center;
+  background: rgba(5,8,16,0.6);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--rim);
+  transition: background 0.3s;
+}
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 20px;
+  text-decoration: none;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.nav-logo-mark {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, var(--ice), var(--cryo));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.nav-logo-dot { color: var(--ice); }
+.nav-links {
+  display: flex; align-items: center; gap: 36px;
+  margin: 0 auto;
+  list-style: none;
+}
+.nav-links a {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+  font-family: var(--mono);
+}
+.nav-links a:hover { color: var(--text); }
+.nav-cta {
+  display: flex; align-items: center; gap: 12px;
+}
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+  font-family: var(--mono);
+  letter-spacing: 0.3px;
+  border: none;
+}
+.btn-outline {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--rim2);
+}
+.btn-outline:hover { color: var(--text); border-color: var(--ice); background: var(--ice-ghost); }
+.btn-primary {
+  background: var(--ice-dim);
+  color: #fff;
+}
+.btn-primary:hover { background: var(--ice); color: #000; }
+.btn-lg {
+  padding: 14px 32px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+.btn-ghost-lg {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--rim2);
+  padding: 14px 32px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+.btn-ghost-lg:hover { color: var(--text); border-color: rgba(56,189,248,0.4); }
+
+section { position: relative; }
+.container { max-width: 1180px; margin: 0 auto; padding: 0 48px; }
+.section-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ice);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.section-label::before {
+  content: '';
+  display: block;
+  width: 20px; height: 1px;
+  background: var(--ice);
+}
+h1, h2, h3, h4 { font-family: var(--display); line-height: 1.1; }
+h2 { font-size: clamp(32px, 4vw, 52px); font-weight: 800; }
+h3 { font-size: clamp(20px, 2.5vw, 28px); font-weight: 700; }
+
+#hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  padding-top: 68px;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 60% 40%, rgba(14,165,233,0.07) 0%, transparent 65%),
+              radial-gradient(ellipse 50% 40% at 20% 80%, rgba(20,184,166,0.05) 0%, transparent 60%);
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(var(--rim) 1px, transparent 1px),
+    linear-gradient(90deg, var(--rim) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 80%);
+  opacity: 0.5;
+}
+
+.hero-road-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+  padding: 80px 0;
+}
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px;
+  background: rgba(56,189,248,0.08);
+  border: 1px solid rgba(56,189,248,0.2);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ice);
+  letter-spacing: 1px;
+  margin-bottom: 24px;
+}
+.hero-tag-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--ice); animation: blink 1.4s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.hero-title {
+  font-size: clamp(42px, 5.5vw, 76px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -2px;
+  margin-bottom: 24px;
+}
+.hero-title em { font-style: normal; color: var(--ice); }
+.hero-title .line-break { display: block; }
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 480px;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+.hero-actions { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.hero-stats {
+  display: flex; gap: 40px;
+  margin-top: 52px;
+  padding-top: 40px;
+  border-top: 1px solid var(--rim);
+}
+.hstat-val {
+  font-family: var(--mono);
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.hstat-val span { color: var(--ice); }
+.hstat-label { font-size: 12px; color: var(--muted); }
+
+/* hero right: dashboard mockup */
+.hero-mockup {
+  position: relative;
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+.mockup-frame {
+  background: var(--deep);
+  border: 1px solid var(--rim2);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px var(--rim), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.mockup-bar {
+  height: 38px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rim);
+  display: flex; align-items: center;
+  padding: 0 14px;
+  gap: 8px;
+}
+.mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.mockup-title-bar {
+  flex: 1;
+  height: 20px;
+  background: var(--panel);
+  border-radius: 4px;
+  margin: 0 20px;
+  display: flex; align-items: center; padding: 0 10px;
+  font-family: var(--mono); font-size: 9px; color: var(--muted);
+}
+.mockup-content { padding: 14px; }
+.mockup-map-area {
+  height: 160px;
+  background: #090e1a;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 12px;
+}
+.mockup-map-area svg { width: 100%; height: 100%; }
+
+.mockup-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.mcard {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 10px;
+}
+.mcard-label { font-family: var(--mono); font-size: 8px; color: var(--muted); margin-bottom: 4px; }
+.mcard-val { font-family: var(--mono); font-size: 16px; font-weight: 600; }
+.mcard-val.ice { color: var(--ice); }
+.mcard-val.warn { color: var(--warn); }
+.mcard-val.safe { color: var(--safe); }
+
+.mockup-chart {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  height: 52px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── PROBLEM SECTION ── */
+#problem {
+  padding: 120px 0;
+  background: linear-gradient(180deg, var(--night) 0%, var(--void) 100%);
+}
+.problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.problem-visual {
+  position: relative;
+}
+.problem-stat-stack {
+  display: flex; flex-direction: column; gap: 16px;
+}
+.pstat {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-left: 3px solid;
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 20px;
+  transition: transform 0.3s, border-color 0.3s;
+}
+.pstat:hover { transform: translateX(6px); }
+.pstat.red { border-left-color: var(--danger); }
+.pstat.yellow { border-left-color: var(--warn); }
+.pstat.blue { border-left-color: var(--ice); }
+.pstat-num {
+  font-family: var(--mono);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1;
+  flex-shrink: 0;
+  min-width: 100px;
+}
+.pstat.red .pstat-num { color: var(--danger); }
+.pstat.yellow .pstat-num { color: var(--warn); }
+.pstat.blue .pstat-num { color: var(--ice); }
+.pstat-text { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.pstat-title { font-weight: 600; color: var(--text); font-size: 15px; margin-bottom: 3px; }
+
+.problem-copy { }
+.problem-copy p { color: var(--muted); margin-bottom: 20px; font-size: 17px; line-height: 1.7; }
+.problem-copy strong { color: var(--text); }
+
+/* ── HOW IT WORKS ── */
+#how {
+  padding: 120px 0;
+  background: var(--void);
+}
+.how-header { text-align: center; margin-bottom: 80px; }
+.how-header p { color: var(--muted); max-width: 560px; margin: 16px auto 0; font-size: 17px; }
+
+.how-flow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  position: relative;
+  margin-bottom: 80px;
+}
+
+.how-flow::before {
+  content: '';
+  position: absolute;
+  top: 52px; left: 12.5%; right: 12.5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ice), var(--ice), transparent);
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.how-step {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 14px;
+  padding: 32px 24px 28px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.how-step:hover { border-color: rgba(56,189,248,0.3); transform: translateY(-4px); }
+
+.how-step-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ice);
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.how-step-icon {
+  width: 52px; height: 52px;
+  background: var(--ice-ghost);
+  border: 1px solid rgba(56,189,248,0.2);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  margin: 0 auto 16px;
+}
+.how-step h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  font-family: var(--display);
+}
+.how-step p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* tech detail row */
+.how-tech {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.how-tech-visual {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 14px;
+  padding: 32px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 2;
+  position: relative;
+  overflow: hidden;
+}
+.how-tech-visual::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--ice), var(--cryo));
+}
+.code-line { display: flex; gap: 12px; }
+.code-kw { color: var(--ice); }
+.code-fn { color: #c792ea; }
+.code-str { color: var(--safe); }
+.code-num { color: var(--warn); }
+.code-comment { color: var(--hint); }
+.code-output {
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--deep);
+  border-radius: 8px;
+  border: 1px solid var(--rim);
+}
+.code-out-row { display: flex; justify-content: space-between; }
+.code-out-key { color: var(--muted); }
+.code-out-val { color: var(--warn); }
+.code-out-val.high { color: var(--danger); }
+.code-out-val.ok { color: var(--safe); }
+
+.how-tech-copy h3 { margin-bottom: 20px; }
+.how-tech-copy p { color: var(--muted); margin-bottom: 16px; font-size: 16px; }
+.feature-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.feature-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 15px; color: var(--muted);
+}
+.feature-list li::before {
+  content: '→';
+  color: var(--ice);
+  font-family: var(--mono);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── FEATURES ── */
+#features {
+  padding: 120px 0;
+  background: linear-gradient(180deg, var(--void) 0%, var(--night) 100%);
+}
+.features-header { text-align: center; margin-bottom: 72px; }
+.features-header p { color: var(--muted); max-width: 540px; margin: 16px auto 0; font-size: 17px; }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.feat-card {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 14px;
+  padding: 32px;
+  transition: border-color 0.3s, transform 0.3s, background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.feat-card::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--ice), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.feat-card:hover { border-color: rgba(56,189,248,0.25); transform: translateY(-3px); }
+.feat-card:hover::after { opacity: 0.5; }
+
+.feat-card.featured {
+  background: linear-gradient(135deg, rgba(56,189,248,0.06) 0%, rgba(20,184,166,0.04) 100%);
+  border-color: rgba(56,189,248,0.2);
+  grid-column: span 1;
+}
+.feat-icon {
+  width: 48px; height: 48px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  margin-bottom: 20px;
+  background: var(--ice-ghost);
+  border: 1px solid rgba(56,189,248,0.15);
+}
+.feat-icon.cryo { background: rgba(20,184,166,0.08); border-color: rgba(20,184,166,0.2); }
+.feat-icon.danger { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.2); }
+.feat-icon.warn { background: rgba(234,179,8,0.08); border-color: rgba(234,179,8,0.2); }
+.feat-icon.safe { background: rgba(34,197,94,0.08); border-color: rgba(34,197,94,0.2); }
+
+.feat-card h4 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  font-family: var(--display);
+}
+.feat-card p { font-size: 14px; color: var(--muted); line-height: 1.65; }
+.feat-badge {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 4px 10px;
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.2);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ice);
+  letter-spacing: 0.5px;
+}
+
+/* ── DASHBOARD PREVIEW ── */
+#dashboard-preview {
+  padding: 120px 0;
+  background: var(--night);
+  overflow: hidden;
+}
+.dp-header { text-align: center; margin-bottom: 60px; }
+.dp-header p { color: var(--muted); max-width: 540px; margin: 16px auto 0; font-size: 17px; }
+
+.dp-frame-wrap {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.dp-glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(ellipse 60% 40% at 50% 50%, rgba(56,189,248,0.07) 0%, transparent 70%);
+  pointer-events: none;
+}
+.dp-frame {
+  background: var(--deep);
+  border: 1px solid var(--rim2);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 60px 100px rgba(0,0,0,0.7), 0 0 0 1px var(--rim);
+  position: relative;
+}
+.dp-bar {
+  height: 42px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--rim);
+  display: flex; align-items: center;
+  padding: 0 16px;
+  gap: 8px;
+}
+.dp-dot { width: 11px; height: 11px; border-radius: 50%; }
+.dp-url {
+  flex: 1; margin: 0 24px;
+  height: 24px;
+  background: var(--panel);
+  border-radius: 5px;
+  display: flex; align-items: center; padding: 0 12px;
+  font-family: var(--mono); font-size: 10px; color: var(--muted);
+  gap: 6px;
+}
+.dp-url-lock { color: var(--safe); font-size: 9px; }
+
+.dp-content { padding: 0; }
+
+/* mini dashboard inside preview */
+.mini-dash {
+  display: grid;
+  grid-template-columns: 180px 1fr 260px;
+  height: 400px;
+}
+.mini-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--rim);
+  padding: 16px 0;
+}
+.mini-nav-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.mini-nav-item.active { color: var(--ice); border-left: 2px solid var(--ice); background: rgba(56,189,248,0.05); }
+.mini-nav-icon { font-size: 12px; }
+
+.mini-main { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
+.mini-map-box {
+  flex: 1;
+  background: #090e1a;
+  border-radius: 8px;
+  border: 1px solid var(--rim);
+  position: relative;
+  overflow: hidden;
+}
+.mini-map-box svg { width: 100%; height: 100%; }
+
+.mini-bottom { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.mini-metric {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 8px;
+  padding: 10px;
+}
+.mini-metric-l { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 4px; }
+.mini-metric-v { font-family: var(--mono); font-size: 18px; font-weight: 600; }
+
+.mini-right {
+  background: var(--surface);
+  border-left: 1px solid var(--rim);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.mini-gauge-box {
+  background: var(--panel);
+  border-radius: 10px;
+  padding: 14px;
+  text-align: center;
+}
+.mini-log-item {
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  display: flex; justify-content: space-between;
+  color: var(--muted);
+}
+.mini-log-item .zone { font-weight: 600; }
+.mini-log-item .zone.a { color: var(--safe); }
+.mini-log-item .zone.b { color: var(--warn); }
+.mini-log-item .zone.c { color: var(--danger); }
+
+/* animated ring inside gauge */
+.gauge-ring-animate { animation: ring-spin 8s linear infinite; transform-origin: 50% 50%; }
+@keyframes ring-spin { from{stroke-dashoffset:0} to{stroke-dashoffset:-200} }
+
+/* car dots on mini map */
+.car-dot { animation: car-move-a 4s ease-in-out infinite alternate; }
+.car-dot-b { animation: car-move-b 5s ease-in-out infinite alternate; }
+.car-dot-c { animation: car-move-c 3.5s ease-in-out infinite alternate; }
+@keyframes car-move-a { from{transform:translateX(-30px)} to{transform:translateX(30px)} }
+@keyframes car-move-b { from{transform:translateY(-20px)} to{transform:translateY(20px)} }
+@keyframes car-move-c { from{transform:translate(-20px,-10px)} to{transform:translate(20px,10px)} }
+
+/* ── TECH STACK ── */
+#tech {
+  padding: 100px 0;
+  background: linear-gradient(180deg, var(--night) 0%, var(--void) 100%);
+}
+.tech-header { text-align: center; margin-bottom: 60px; }
+.tech-header p { color: var(--muted); max-width: 520px; margin: 16px auto 0; }
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-bottom: 60px;
+}
+.tech-card {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 12px;
+  padding: 20px 14px;
+  text-align: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.tech-card:hover { border-color: rgba(56,189,248,0.3); transform: translateY(-2px); }
+.tech-card-icon { font-size: 26px; margin-bottom: 10px; display: block; }
+.tech-card-name { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 600; margin-bottom: 3px; }
+.tech-card-role { font-family: var(--mono); font-size: 9px; color: var(--muted); }
+
+.tech-arch {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 14px;
+  padding: 40px;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 0;
+}
+.arch-block {
+  background: var(--panel);
+  border: 1px solid var(--rim);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+.arch-block-icon { font-size: 24px; margin-bottom: 8px; }
+.arch-block-name { font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.arch-block-sub { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+.arch-arrow {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 20px;
+  color: var(--ice);
+  padding: 0 16px;
+  opacity: 0.6;
+}
+
+/* ── TEAM / ABOUT ── */
+#about {
+  padding: 120px 0;
+  background: var(--void);
+}
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+.about-copy h2 { margin-bottom: 24px; }
+.about-copy p { color: var(--muted); margin-bottom: 18px; font-size: 16px; }
+
+.about-pills { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.about-pill {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 14px;
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.about-pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.team-grid { display: flex; flex-direction: column; gap: 14px; }
+.team-card {
+  background: var(--surface);
+  border: 1px solid var(--rim);
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex; align-items: center; gap: 18px;
+  transition: border-color 0.2s;
+}
+.team-card:hover { border-color: rgba(56,189,248,0.25); }
+.team-avatar {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ice-ghost), rgba(20,184,166,0.15));
+  border: 1px solid rgba(56,189,248,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--display);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ice);
+  flex-shrink: 0;
+}
+.team-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; }
+.team-role { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* ── CTA ── */
+#cta {
+  padding: 140px 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: var(--night);
+}
+.cta-glow {
+  position: absolute;
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(56,189,248,0.1) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.cta-ring {
+  position: absolute;
+  width: 500px; height: 500px;
+  border: 1px solid rgba(56,189,248,0.06);
+  border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  animation: ring-pulse 4s ease-in-out infinite;
+}
+.cta-ring:nth-child(2) { width: 700px; height: 700px; animation-delay: 0.8s; }
+.cta-ring:nth-child(3) { width: 900px; height: 900px; animation-delay: 1.6s; }
+@keyframes ring-pulse { 0%,100%{opacity:0.4;transform:translate(-50%,-50%) scale(1)} 50%{opacity:0.1;transform:translate(-50%,-50%) scale(1.02)} }
+
+#cta .container { position: relative; z-index: 2; }
+.cta-label { margin-bottom: 24px; display: flex; justify-content: center; }
+.cta-title { font-size: clamp(36px, 5vw, 68px); font-weight: 800; letter-spacing: -2px; margin-bottom: 24px; line-height: 1.05; }
+.cta-title em { font-style: normal; color: var(--ice); }
+.cta-sub { color: var(--muted); font-size: 18px; max-width: 520px; margin: 0 auto 48px; font-weight: 300; }
+.cta-actions { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+/* contact info mini */
+.cta-contact {
+  margin-top: 60px;
+  display: flex; gap: 48px; justify-content: center; flex-wrap: wrap;
+}
+.cta-contact-item {
+  text-align: center;
+}
+.cta-contact-label { font-family: var(--mono); font-size: 10px; color: var(--hint); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+.cta-contact-val { font-family: var(--mono); font-size: 14px; color: var(--muted); }
+.cta-contact-val a { color: var(--ice); text-decoration: none; }
+.cta-contact-val a:hover { text-decoration: underline; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--deep);
+  border-top: 1px solid var(--rim);
+  padding: 40px 0;
+}
+.footer-inner {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 16px;
+}
+.footer-logo { font-family: var(--display); font-weight: 700; font-size: 16px; }
+.footer-links { display: flex; gap: 28px; }
+.footer-links a {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted); text-decoration: none;
+}
+.footer-links a:hover { color: var(--ice); }
+.footer-copy { font-family: var(--mono); font-size: 11px; color: var(--hint); }
+
+/* ── SCROLL ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* animated numbers */
+.count-up { display: inline; }
+
+/* ── ICE PARTICLE CANVAS ── */
+#hero-particles { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--rim2); border-radius: 2px; }
+
+/* responsive */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+  .hero-mockup { display: none; }
+  .problem-grid { grid-template-columns: 1fr; }
+  .how-flow { grid-template-columns: 1fr 1fr; }
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .about-grid { grid-template-columns: 1fr; }
+  .tech-grid { grid-template-columns: repeat(3,1fr); }
+  .tech-arch { grid-template-columns: 1fr; gap: 16px; }
+  .arch-arrow { transform: rotate(90deg); }
+  .mini-dash { grid-template-columns: 1fr; height: auto; }
+  .mini-sidebar, .mini-right { display: none; }
+  nav { padding: 0 24px; }
+  .nav-links { display: none; }
+  .container { padding: 0 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">
+    <div class="nav-logo-mark">❄</div>
+    <span>AzEco<span class="nav-logo-dot">.Ai</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#dashboard-preview">Dashboard</a></li>
+    <li><a href="#tech">Tech</a></li>
+    <li><a href="#about">Team</a></li>
+  </ul>
+  <div class="nav-cta">
+    <a href="#dashboard-preview" class="btn btn-outline">View Demo</a>
+    <a href="#cta" class="btn btn-primary">Get in Touch</a>
+  </div>
+</nav>
+
+<!-- ════════════ HERO ════════════ -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <canvas id="hero-particles"></canvas>
+
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <div class="hero-tag reveal">
+          <div class="hero-tag-dot"></div>
+          Azerbaijan · Road Safety Intelligence
+        </div>
+
+        <h1 class="hero-title reveal reveal-delay-1">
+          <em>AI-Powered</em>
+          <span class="line-break">Road Ice</span>
+          <span class="line-break">Prevention</span>
+        </h1>
+
+        <p class="hero-sub reveal reveal-delay-2">
+          AzEco.Ai uses machine learning and real-time IoT sensors to predict road icing before it happens — deploying treatment units automatically to keep Baku's roads safe.
+        </p>
+
+        <div class="hero-actions reveal reveal-delay-3">
+          <a href="#how" class="btn btn-primary btn-lg">See How It Works</a>
+          <a href="#dashboard-preview" class="btn-ghost-lg btn">Live Dashboard →</a>
+        </div>
+
+        <div class="hero-stats reveal reveal-delay-4">
+          <div>
+            <div class="hstat-val"><span class="count-up" data-target="94">0</span><span>%</span></div>
+            <div class="hstat-label">Model accuracy</div>
+          </div>
+          <div>
+            <div class="hstat-val"><span class="count-up" data-target="12">0</span><span>+</span></div>
+            <div class="hstat-label">Active sensors</div>
+          </div>
+          <div>
+            <div class="hstat-val"><span class="count-up" data-target="3">0</span></div>
+            <div class="hstat-label">Treatment zones</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard mockup -->
+      <div class="hero-mockup reveal reveal-delay-2">
+        <div class="mockup-frame">
+          <div class="mockup-bar">
+            <div class="mockup-dot" style="background:#ef4444"></div>
+            <div class="mockup-dot" style="background:#eab308"></div>
+            <div class="mockup-dot" style="background:#22c55e"></div>
+            <div class="mockup-title-bar">azeco.ai/dashboard</div>
+          </div>
+          <div class="mockup-content">
+            <div class="mockup-map-area">
+              <svg viewBox="0 0 400 160" xmlns="http://www.w3.org/2000/svg">
+                <rect width="400" height="160" fill="#090e1a"/>
+                <!-- blocks -->
+                <rect x="10" y="8" width="55" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="80" y="8" width="65" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="160" y="8" width="55" height="30" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="230" y="8" width="70" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="315" y="8" width="75" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="10" y="60" width="50" height="45" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="75" y="60" width="60" height="45" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="150" y="58" width="70" height="48" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="235" y="60" width="55" height="45" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="305" y="60" width="85" height="45" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="10" y="120" width="70" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="95" y="120" width="55" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="165" y="115" width="55" height="40" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="235" y="120" width="60" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <rect x="310" y="120" width="80" height="35" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.5"/>
+                <!-- roads -->
+                <line x1="75" y1="0" x2="75" y2="160" stroke="#1a2a40" stroke-width="2"/>
+                <line x1="150" y1="0" x2="150" y2="160" stroke="#1a2a40" stroke-width="2"/>
+                <line x1="225" y1="0" x2="225" y2="160" stroke="#1a2a40" stroke-width="2"/>
+                <line x1="300" y1="0" x2="300" y2="160" stroke="#1a2a40" stroke-width="2"/>
+                <line x1="0" y1="55" x2="400" y2="55" stroke="#1a2a40" stroke-width="2"/>
+                <line x1="0" y1="112" x2="400" y2="112" stroke="#1a2a40" stroke-width="2"/>
+                <line x1="0" y1="83" x2="400" y2="83" stroke="#243550" stroke-width="5"/>
+                <line x1="192" y1="0" x2="192" y2="160" stroke="#243550" stroke-width="5"/>
+                <!-- risk roads -->
+                <line x1="75" y1="55" x2="150" y2="55" stroke="#22c55e" stroke-width="3" opacity="0.8"/>
+                <line x1="150" y1="112" x2="225" y2="112" stroke="#eab308" stroke-width="3" opacity="0.9"/>
+                <line x1="225" y1="55" x2="300" y2="55" stroke="#ef4444" stroke-width="4" opacity="0.9"/>
+                <!-- sensor pins -->
+                <circle cx="112" cy="55" r="6" fill="#22c55e" stroke="#090e1a" stroke-width="1.5"/>
+                <text x="112" y="58" text-anchor="middle" font-size="5.5" fill="#000" font-weight="700" font-family="monospace">A</text>
+                <circle cx="187" cy="112" r="6" fill="#eab308" stroke="#090e1a" stroke-width="1.5"/>
+                <text x="187" y="115" text-anchor="middle" font-size="5.5" fill="#000" font-weight="700" font-family="monospace">B</text>
+                <circle cx="262" cy="55" r="7" fill="#ef4444" stroke="#090e1a" stroke-width="1.5"/>
+                <text x="262" y="58" text-anchor="middle" font-size="5.5" fill="#fff" font-weight="700" font-family="monospace">C</text>
+                <!-- animated car dots -->
+                <g class="car-dot">
+                  <circle cx="112" cy="55" r="3" fill="#22c55e" opacity="0.4"/>
+                  <rect x="94" y="52" width="12" height="6" rx="1.5" fill="#1a6b3c"/>
+                  <rect x="95" y="50" width="8" height="4" rx="1" fill="#22c55e"/>
+                </g>
+                <g class="car-dot-b">
+                  <rect x="175" y="109" width="12" height="6" rx="1.5" fill="#7c5a08"/>
+                  <rect x="176" y="107" width="8" height="4" rx="1" fill="#eab308"/>
+                </g>
+                <g class="car-dot-c">
+                  <rect x="248" y="52" width="14" height="7" rx="1.5" fill="#7a1a1a"/>
+                  <rect x="249" y="50" width="10" height="5" rx="1" fill="#ef4444"/>
+                  <circle cx="261" cy="51" r="1.5" fill="#fffde0" opacity="0.9"/>
+                </g>
+              </svg>
+            </div>
+            <div class="mockup-cards">
+              <div class="mcard">
+                <div class="mcard-label">ICE PROB</div>
+                <div class="mcard-val ice">54%</div>
+              </div>
+              <div class="mcard">
+                <div class="mcard-label">FREEZE IDX</div>
+                <div class="mcard-val warn">1.20</div>
+              </div>
+              <div class="mcard">
+                <div class="mcard-label">SENSORS</div>
+                <div class="mcard-val safe">12/12</div>
+              </div>
+            </div>
+            <div class="mockup-chart">
+              <svg viewBox="0 0 400 52" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                <polyline points="0,40 30,35 60,38 90,25 120,30 150,20 180,28 210,15 240,22 270,18 300,25 330,12 360,20 390,10 400,8"
+                  fill="none" stroke="#38bdf8" stroke-width="1.5"/>
+                <polyline points="0,40 30,35 60,38 90,25 120,30 150,20 180,28 210,15 240,22 270,18 300,25 330,12 360,20 390,10 400,8 400,52 0,52"
+                  fill="rgba(56,189,248,0.06)"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ PROBLEM ════════════ -->
+<section id="problem">
+  <div class="container">
+    <div class="problem-grid">
+      <div class="problem-visual">
+        <div class="problem-stat-stack">
+          <div class="pstat red reveal">
+            <div class="pstat-num">34%</div>
+            <div>
+              <div class="pstat-title">Winter Accident Increase</div>
+              <div class="pstat-text">Road accidents in Azerbaijan spike by over a third during icy winter conditions — making ice the #1 seasonal road hazard.</div>
+            </div>
+          </div>
+          <div class="pstat yellow reveal reveal-delay-1">
+            <div class="pstat-num">6h</div>
+            <div>
+              <div class="pstat-title">Average Reaction Delay</div>
+              <div class="pstat-text">Traditional manual monitoring means crews react to ice <em>after</em> it forms — up to 6 hours after the risk window opens.</div>
+            </div>
+          </div>
+          <div class="pstat blue reveal reveal-delay-2">
+            <div class="pstat-num">$2M+</div>
+            <div>
+              <div class="pstat-title">Annual Economic Loss</div>
+              <div class="pstat-text">Accidents, delays, and emergency response costs from winter road incidents in the Baku region alone.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="problem-copy reveal">
+        <div class="section-label">The Problem</div>
+        <h2 style="margin-bottom:24px">Roads don't warn you.<br/>We built a system that does.</h2>
+        <p>Ice forms silently. By the time a driver notices, it's too late. Traditional salting crews operate on schedules — not intelligence. They treat roads that are already dangerous, not roads that are <strong>about to become</strong> dangerous.</p>
+        <p>Existing weather stations are too sparse and too slow. Municipalities get yesterday's data when they need tomorrow's prediction. The entire paradigm is reactive when it needs to be <strong>proactive</strong>.</p>
+        <p>AzEco.Ai flips the model. We predict ice formation up to hours in advance using a trained ML model fed by distributed IoT sensors — then dispatch treatment units automatically, before the ice ever forms.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ HOW IT WORKS ════════════ -->
+<section id="how">
+  <div class="container">
+    <div class="how-header reveal">
+      <div class="section-label" style="justify-content:center">How it works</div>
+      <h2>From sensor to safe road<br/>in minutes, not hours</h2>
+      <p>A fully automated pipeline — sense, predict, decide, act. No manual intervention required.</p>
+    </div>
+
+    <div class="how-flow">
+      <div class="how-step reveal">
+        <div class="how-step-num">01</div>
+        <div class="how-step-icon">📡</div>
+        <h4>Sensor Network</h4>
+        <p>IoT sensors embedded in road surface and pellet units measure temperature, humidity, and road moisture in real time.</p>
+      </div>
+      <div class="how-step reveal reveal-delay-1">
+        <div class="how-step-num">02</div>
+        <div class="how-step-icon">🧠</div>
+        <h4>ML Prediction</h4>
+        <p>Random Forest model with 94.3% accuracy computes ice probability, dew point, and freeze index for each zone.</p>
+      </div>
+      <div class="how-step reveal reveal-delay-2">
+        <div class="how-step-num">03</div>
+        <div class="how-step-icon">⚡</div>
+        <h4>Risk Classification</h4>
+        <p>The system classifies risk as LOW / MEDIUM / HIGH and triggers alerts when thresholds are crossed.</p>
+      </div>
+      <div class="how-step reveal reveal-delay-3">
+        <div class="how-step-num">04</div>
+        <div class="how-step-icon">🚛</div>
+        <h4>Auto Treatment</h4>
+        <p>AzEco.Ai treatment units deploy salt exactly where needed — guided by zone risk levels, not fixed schedules.</p>
+      </div>
+    </div>
+
+    <div class="how-tech">
+      <div class="how-tech-visual reveal">
+        <div class="code-line"><span class="code-comment"># Flask API endpoint — called by sensor pellets</span></div>
+        <div class="code-line"><span class="code-kw">@app</span>.route(<span class="code-str">"/predict_ice"</span>, methods=[<span class="code-str">"POST"</span>])</div>
+        <div class="code-line"><span class="code-kw">def</span> <span class="code-fn">predict_ice</span>():</div>
+        <div class="code-line">&nbsp;&nbsp;data = request.json</div>
+        <div class="code-line">&nbsp;&nbsp;df = create_ice_features(data)</div>
+        <div class="code-line">&nbsp;&nbsp;prob = ice_model.predict_proba(df)[<span class="code-num">0</span>][<span class="code-num">1</span>]</div>
+        <br/>
+        <div class="code-line"><span class="code-comment"># Feature engineering</span></div>
+        <div class="code-line">dew_point = temp - ((100 - humidity) / <span class="code-num">5</span>)</div>
+        <div class="code-line">freeze_idx = max(<span class="code-num">0</span>, -temp) * road_moisture</div>
+        <div class="code-output">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-bottom:6px">→ Response</div>
+          <div class="code-out-row"><span class="code-out-key">ice_probability:</span><span class="code-out-val">0.81</span></div>
+          <div class="code-out-row"><span class="code-out-key">risk_level:</span><span class="code-out-val high">HIGH</span></div>
+          <div class="code-out-row"><span class="code-out-key">action:</span><span class="code-out-val ok">DEPLOY_TREATMENT</span></div>
+        </div>
+      </div>
+      <div class="how-tech-copy reveal reveal-delay-1">
+        <div class="section-label">ML Engine</div>
+        <h3>Random Forest<br/>Ice Prediction Model</h3>
+        <p>Trained on thousands of historical sensor readings, our Random Forest classifier uses 5 engineered features to predict ice formation with 94.3% accuracy.</p>
+        <ul class="feature-list">
+          <li><strong>200 decision trees</strong> — ensemble for robustness against outliers</li>
+          <li><strong>Dew point calculation</strong> — key physics-based ice formation indicator</li>
+          <li><strong>Freeze Index</strong> — proprietary composite score combining temp × moisture</li>
+          <li><strong>Flask REST API</strong> — sensor pellets call /predict_ice every 30 seconds</li>
+          <li><strong>Real-time logging</strong> — all readings saved to sensor_log.csv for retraining</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FEATURES ════════════ -->
+<section id="features">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="section-label" style="justify-content:center">Capabilities</div>
+      <h2>Everything you need to<br/>eliminate ice accidents</h2>
+      <p>A complete end-to-end system — from raw sensor data to autonomous treatment deployment.</p>
+    </div>
+
+    <div class="features-grid">
+      <div class="feat-card featured reveal">
+        <div class="feat-icon">🤖</div>
+        <h4>Autonomous ML Prediction</h4>
+        <p>Random Forest model predicts ice probability per zone up to hours in advance. Continuously improves as more sensor data is logged.</p>
+        <span class="feat-badge">RF · 200 trees · 94.3% acc</span>
+      </div>
+      <div class="feat-card reveal reveal-delay-1">
+        <div class="feat-icon cryo">📡</div>
+        <h4>Real-Time IoT Sensors</h4>
+        <p>Embedded road sensors report temperature, humidity, and moisture every 30 seconds directly to the prediction API.</p>
+      </div>
+      <div class="feat-card reveal reveal-delay-2">
+        <div class="feat-icon danger">⚠</div>
+        <h4>Zone Risk Classification</h4>
+        <p>Three monitored zones (A/B/C) with individually calibrated thresholds. LOW / MEDIUM / HIGH risk levels with configurable triggers.</p>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-icon warn">🚛</div>
+        <h4>Automated Treatment Units</h4>
+        <p>AzEco.Ai branded pellet vehicles receive dispatch commands automatically when risk exceeds thresholds — no human delay.</p>
+      </div>
+      <div class="feat-card reveal reveal-delay-1">
+        <div class="feat-icon safe">📊</div>
+        <h4>Live Intelligence Dashboard</h4>
+        <p>Full-screen monitoring dashboard with animated road map, live charts, sensor log, ML simulator, and export functionality.</p>
+      </div>
+      <div class="feat-card reveal reveal-delay-2">
+        <div class="feat-icon">🗺</div>
+        <h4>Baku Road Network Map</h4>
+        <p>Real-time risk visualization on the Baku road grid. Animated treatment cars show exactly where units are operating right now.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ DASHBOARD PREVIEW ════════════ -->
+<section id="dashboard-preview">
+  <div class="container">
+    <div class="dp-header reveal">
+      <div class="section-label" style="justify-content:center">Live System</div>
+      <h2>The intelligence<br/>command center</h2>
+      <p>A purpose-built dashboard that puts every critical signal in one place — map, predictions, sensor log, and ML simulator.</p>
+    </div>
+
+    <div class="dp-frame-wrap reveal">
+      <div class="dp-glow"></div>
+      <div class="dp-frame">
+        <div class="dp-bar">
+          <div class="dp-dot" style="background:#ef4444"></div>
+          <div class="dp-dot" style="background:#eab308"></div>
+          <div class="dp-dot" style="background:#22c55e"></div>
+          <div class="dp-url"><span class="dp-url-lock">🔒</span> azeco.ai/dashboard · Road Ice Intelligence v2.1</div>
+        </div>
+        <div class="dp-content">
+          <div class="mini-dash">
+            <div class="mini-sidebar">
+              <div class="mini-nav-item active"><span class="mini-nav-icon">🗺</span> Road Map</div>
+              <div class="mini-nav-item"><span class="mini-nav-icon">📊</span> Analytics</div>
+              <div class="mini-nav-item"><span class="mini-nav-icon">⚠</span> Alerts <span style="background:#ef4444;color:#fff;font-size:8px;padding:1px 5px;border-radius:8px;margin-left:auto">3</span></div>
+              <div class="mini-nav-item"><span class="mini-nav-icon">🧠</span> ML Model</div>
+              <div class="mini-nav-item"><span class="mini-nav-icon">🔬</span> Sensors</div>
+              <div class="mini-nav-item"><span class="mini-nav-icon">⚙</span> Settings</div>
+              <div style="margin-top:auto;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.06)">
+                <div style="font-family:var(--mono);font-size:8px;color:var(--hint)">Model version</div>
+                <div style="font-family:var(--mono);font-size:10px;color:var(--cryo);font-weight:600">RF v2.1 · 200 trees</div>
+                <div style="font-family:var(--mono);font-size:8px;color:var(--hint);margin-top:4px">Accuracy</div>
+                <div style="font-family:var(--mono);font-size:10px;color:var(--cryo);font-weight:600">94.3%</div>
+              </div>
+            </div>
+
+            <div class="mini-main">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-family:var(--display);font-size:14px;font-weight:700">Road Ice Monitoring — Baku</div>
+                <div style="display:flex;gap:6px">
+                  <div style="background:var(--ice-dim);color:#fff;font-size:9px;padding:4px 10px;border-radius:5px;font-family:var(--mono)">▶ Run Prediction</div>
+                  <div style="background:transparent;border:1px solid rgba(239,68,68,0.4);color:var(--danger);font-size:9px;padding:4px 10px;border-radius:5px;font-family:var(--mono)">🧂 Deploy</div>
+                </div>
+              </div>
+              <div class="mini-map-box">
+                <svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="400" height="140" fill="#090e1a"/>
+                  <rect x="8" y="6" width="50" height="32" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="72" y="6" width="62" height="32" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="148" y="6" width="52" height="28" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="215" y="6" width="68" height="32" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="298" y="6" width="96" height="32" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="8" y="54" width="48" height="40" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="70" y="54" width="58" height="40" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="142" y="52" width="68" height="44" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="224" y="54" width="52" height="40" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="290" y="54" width="105" height="40" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="8" y="107" width="68" height="30" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="90" y="107" width="52" height="30" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="158" y="103" width="52" height="34" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="224" y="107" width="58" height="30" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <rect x="296" y="107" width="100" height="30" rx="2" fill="#0d1830" stroke="#131e32" stroke-width="0.4"/>
+                  <line x1="68" y1="0" x2="68" y2="140" stroke="#1a2a40" stroke-width="1.5"/>
+                  <line x1="142" y1="0" x2="142" y2="140" stroke="#1a2a40" stroke-width="1.5"/>
+                  <line x1="216" y1="0" x2="216" y2="140" stroke="#1a2a40" stroke-width="1.5"/>
+                  <line x1="290" y1="0" x2="290" y2="140" stroke="#1a2a40" stroke-width="1.5"/>
+                  <line x1="0" y1="48" x2="400" y2="48" stroke="#1a2a40" stroke-width="1.5"/>
+                  <line x1="0" y1="100" x2="400" y2="100" stroke="#1a2a40" stroke-width="1.5"/>
+                  <line x1="0" y1="74" x2="400" y2="74" stroke="#243550" stroke-width="4"/>
+                  <line x1="188" y1="0" x2="188" y2="140" stroke="#243550" stroke-width="4"/>
+                  <line x1="68" y1="48" x2="142" y2="48" stroke="#22c55e" stroke-width="2.5" opacity="0.8"/>
+                  <line x1="142" y1="100" x2="216" y2="100" stroke="#eab308" stroke-width="2.5" opacity="0.9"/>
+                  <line x1="216" y1="48" x2="290" y2="48" stroke="#ef4444" stroke-width="3" opacity="0.9"/>
+                  <!-- Sensor pins -->
+                  <circle cx="105" cy="48" r="5.5" fill="#22c55e" stroke="#090e1a" stroke-width="1.5"/>
+                  <text x="105" y="51" text-anchor="middle" font-size="4.5" fill="#000" font-weight="700" font-family="monospace">A</text>
+                  <circle cx="179" cy="100" r="5.5" fill="#eab308" stroke="#090e1a" stroke-width="1.5"/>
+                  <text x="179" y="103" text-anchor="middle" font-size="4.5" fill="#000" font-weight="700" font-family="monospace">B</text>
+                  <circle cx="253" cy="48" r="6.5" fill="#ef4444" stroke="#090e1a" stroke-width="1.5"/>
+                  <text x="253" y="51" text-anchor="middle" font-size="4.5" fill="#fff" font-weight="700" font-family="monospace">C</text>
+                  <!-- animated mini cars -->
+                  <g style="animation:car-move-a 4s ease-in-out infinite alternate">
+                    <rect x="92" y="45" width="10" height="5" rx="1" fill="#1a6b3c"/>
+                    <rect x="93" y="43" width="7" height="3.5" rx="0.8" fill="#22c55e"/>
+                  </g>
+                  <g style="animation:car-move-b 5s ease-in-out infinite alternate">
+                    <rect x="167" y="97" width="10" height="5" rx="1" fill="#7c5a08"/>
+                    <rect x="168" y="95" width="7" height="3.5" rx="0.8" fill="#eab308"/>
+                  </g>
+                  <g style="animation:car-move-c 3.5s ease-in-out infinite alternate">
+                    <rect x="240" y="45" width="12" height="6" rx="1" fill="#7a1a1a"/>
+                    <rect x="241" y="43" width="9" height="4" rx="0.8" fill="#ef4444"/>
+                    <circle cx="252" cy="44" r="1.5" fill="#fffde0" opacity="0.9"/>
+                  </g>
+                  <!-- Legend -->
+                  <rect x="4" y="4" width="60" height="32" rx="3" fill="rgba(8,12,24,0.85)" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+                  <rect x="8" y="9" width="12" height="2" rx="1" fill="#22c55e"/>
+                  <text x="23" y="12" font-size="5" fill="#6b80a0" font-family="monospace">Low risk</text>
+                  <rect x="8" y="17" width="12" height="2" rx="1" fill="#eab308"/>
+                  <text x="23" y="20" font-size="5" fill="#6b80a0" font-family="monospace">Med risk</text>
+                  <rect x="8" y="25" width="12" height="2" rx="1" fill="#ef4444"/>
+                  <text x="23" y="28" font-size="5" fill="#6b80a0" font-family="monospace">High risk</text>
+                  <text x="8" y="34" font-size="5" fill="#6b80a0" font-family="monospace">🚛 Units: 3</text>
+                </svg>
+              </div>
+              <div class="mini-bottom">
+                <div class="mini-metric">
+                  <div class="mini-metric-l">TEMP NOW</div>
+                  <div class="mini-metric-v" style="color:var(--ice)">-1.5°C</div>
+                </div>
+                <div class="mini-metric">
+                  <div class="mini-metric-l">FREEZE IDX</div>
+                  <div class="mini-metric-v" style="color:var(--warn)">1.20</div>
+                </div>
+                <div class="mini-metric">
+                  <div class="mini-metric-l">MODEL ACC</div>
+                  <div class="mini-metric-v" style="color:var(--cryo)">94.3%</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mini-right">
+              <div style="font-family:var(--mono);font-size:9px;color:var(--hint);letter-spacing:1.5px;text-transform:uppercase">Overall Risk</div>
+              <div class="mini-gauge-box">
+                <svg viewBox="0 0 100 65" width="100" height="65" style="overflow:visible">
+                  <path d="M 12 60 A 38 38 0 0 1 88 60" fill="none" stroke="#1a2233" stroke-width="8" stroke-linecap="round"/>
+                  <path d="M 12 60 A 38 38 0 0 1 88 60" fill="none" stroke="#eab308" stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="119" stroke-dashoffset="59"/>
+                  <text x="50" y="56" text-anchor="middle" font-size="18" font-weight="600" fill="#e8edf5" font-family="monospace">54%</text>
+                  <text x="50" y="64" text-anchor="middle" font-size="7" fill="#3a4e66" font-family="monospace">ice prob</text>
+                </svg>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:8px">
+                  <div style="text-align:center;background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);border-radius:5px;padding:4px">
+                    <div style="font-family:var(--mono);font-size:7px;color:var(--hint)">Zone A</div>
+                    <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--safe)">28%</div>
+                  </div>
+                  <div style="text-align:center;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:5px;padding:4px">
+                    <div style="font-family:var(--mono);font-size:7px;color:var(--hint)">Zone B</div>
+                    <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--warn)">54%</div>
+                  </div>
+                  <div style="text-align:center;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:5px;padding:4px">
+                    <div style="font-family:var(--mono);font-size:7px;color:var(--hint)">Zone C</div>
+                    <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--danger)">81%</div>
+                  </div>
+                </div>
+              </div>
+              <div style="font-family:var(--mono);font-size:9px;color:var(--hint);letter-spacing:1px;text-transform:uppercase;margin-top:4px">Sensor Log</div>
+              <div class="mini-log-item">
+                <span>09:42:15</span><span class="zone a">A</span><span>-1.5°C</span><span style="color:var(--safe)">28%</span>
+              </div>
+              <div class="mini-log-item">
+                <span>09:42:10</span><span class="zone b">B</span><span>-2.1°C</span><span style="color:var(--warn)">54%</span>
+              </div>
+              <div class="mini-log-item">
+                <span>09:42:05</span><span class="zone c">C</span><span>-3.0°C</span><span style="color:var(--danger)">81%</span>
+              </div>
+              <div class="mini-log-item">
+                <span>09:42:00</span><span class="zone a">A</span><span>-1.4°C</span><span style="color:var(--safe)">26%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ TECH STACK ════════════ -->
+<section id="tech">
+  <div class="container">
+    <div class="tech-header reveal">
+      <div class="section-label" style="justify-content:center">Technology</div>
+      <h2>Built on proven,<br/>production-grade stack</h2>
+      <p>From scikit-learn to Flask to real IoT hardware — every layer chosen for reliability in critical infrastructure.</p>
+    </div>
+
+    <div class="tech-grid">
+      <div class="tech-card reveal">
+        <span class="tech-card-icon">🐍</span>
+        <div class="tech-card-name">Python 3</div>
+        <div class="tech-card-role">Core runtime</div>
+      </div>
+      <div class="tech-card reveal reveal-delay-1">
+        <span class="tech-card-icon">🌲</span>
+        <div class="tech-card-name">scikit-learn</div>
+        <div class="tech-card-role">ML · Random Forest</div>
+      </div>
+      <div class="tech-card reveal reveal-delay-2">
+        <span class="tech-card-icon">🧪</span>
+        <div class="tech-card-name">Flask</div>
+        <div class="tech-card-role">REST API server</div>
+      </div>
+      <div class="tech-card reveal">
+        <span class="tech-card-icon">🐼</span>
+        <div class="tech-card-name">Pandas</div>
+        <div class="tech-card-role">Data processing</div>
+      </div>
+      <div class="tech-card reveal reveal-delay-1">
+        <span class="tech-card-icon">💾</span>
+        <div class="tech-card-name">joblib</div>
+        <div class="tech-card-role">Model serialization</div>
+      </div>
+      <div class="tech-card reveal reveal-delay-2">
+        <span class="tech-card-icon">📡</span>
+        <div class="tech-card-name">IoT Pellets</div>
+        <div class="tech-card-role">Hardware sensors</div>
+      </div>
+    </div>
+
+    <div class="tech-arch reveal">
+      <div class="arch-block">
+        <div class="arch-block-icon">📡</div>
+        <div class="arch-block-name">IoT Sensors</div>
+        <div class="arch-block-sub">Temp · Humidity · Moisture</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">
+        <div class="arch-block-icon">⚡</div>
+        <div class="arch-block-name">Flask API</div>
+        <div class="arch-block-sub">POST /predict_ice · Port 5000</div>
+      </div>
+      <div class="arch-arrow">→</div>
+      <div class="arch-block">
+        <div class="arch-block-icon">🧠</div>
+        <div class="arch-block-name">RF Model</div>
+        <div class="arch-block-sub">ice_model.pkl · 200 trees</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ ABOUT / TEAM ════════════ -->
+<section id="about">
+  <div class="container">
+    <div class="about-grid">
+      <div class="about-copy reveal">
+        <div class="section-label">About AzEco.Ai</div>
+        <h2>Built in Azerbaijan,<br/>for Azerbaijan's roads</h2>
+        <p>AzEco.Ai is an Azerbaijani deep-tech startup focused on using artificial intelligence to make public infrastructure safer and smarter. We started with road icing because it's a solvable problem that kills people every winter.</p>
+        <p>Our team combines expertise in machine learning, embedded systems, and urban infrastructure. We're building the software and hardware stack from the ground up — no black-box vendor solutions, full control of the prediction pipeline.</p>
+        <p>Our long-term vision: a city-wide environmental intelligence platform covering air quality, flood risk, and road conditions — all powered by the same sensor and ML infrastructure.</p>
+        <div class="about-pills">
+          <div class="about-pill"><div class="about-pill-dot" style="background:var(--ice)"></div>Baku, Azerbaijan</div>
+          <div class="about-pill"><div class="about-pill-dot" style="background:var(--safe)"></div>Deep Tech Startup</div>
+          <div class="about-pill"><div class="about-pill-dot" style="background:var(--cryo)"></div>Road Safety Focus</div>
+          <div class="about-pill"><div class="about-pill-dot" style="background:var(--warn)"></div>IoT + ML + Cloud</div>
+        </div>
+      </div>
+
+      <div class="team-grid reveal reveal-delay-1">
+        <div class="team-card">
+          <div class="team-avatar">ML</div>
+          <div>
+            <div class="team-name">ML Engineering Lead</div>
+            <div class="team-role">Random Forest model · Feature engineering · scikit-learn pipeline</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">BE</div>
+          <div>
+            <div class="team-name">Backend & API Lead</div>
+            <div class="team-role">Flask REST API · sensor logging · deployment infrastructure</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">HW</div>
+          <div>
+            <div class="team-name">Hardware & IoT Lead</div>
+            <div class="team-role">Pellet sensor design · embedded firmware · field deployment</div>
+          </div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar">UI</div>
+          <div>
+            <div class="team-name">Dashboard & UX Lead</div>
+            <div class="team-role">Real-time dashboard · map visualization · treatment animation</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ CTA ════════════ -->
+<section id="cta">
+  <div class="cta-glow"></div>
+  <div class="cta-ring"></div>
+  <div class="cta-ring"></div>
+  <div class="cta-ring"></div>
+
+  <div class="container">
+    <div class="cta-label">
+      <div class="section-label">Get Involved</div>
+    </div>
+    <h2 class="cta-title reveal">Ready to make<br/><em>ice accidents history?</em></h2>
+    <p class="cta-sub reveal reveal-delay-1">Whether you're a city government, infrastructure investor, or tech partner — we want to talk. AzEco.Ai is ready for pilot deployment.</p>
+    <div class="cta-actions reveal reveal-delay-2">
+      <a href="mailto:isazeco.startup@gmail.com" class="btn btn-primary btn-lg">Contact Us →</a>
+      <a href="#dashboard-preview" class="btn-ghost-lg btn">View Live Demo</a>
+    </div>
+
+    <div class="cta-contact reveal reveal-delay-3">
+      <div class="cta-contact-item">
+        <div class="cta-contact-label">Email</div>
+        <div class="cta-contact-val"><a href="mailto:isazeco.startup@gmail.com">isazeco.startup@gmail.com</a></div>
+      </div>
+      <div class="cta-contact-item">
+        <div class="cta-contact-label">Location</div>
+        <div class="cta-contact-val">Baku, Azerbaijan</div>
+      </div>
+      <div class="cta-contact-item">
+        <div class="cta-contact-label">Stage</div>
+        <div class="cta-contact-val">Pre-seed · Pilot ready</div>
+      </div>
+      <div class="cta-contact-item">
+        <div class="cta-contact-label">Model API</div>
+        <div class="cta-contact-val" style="color:var(--safe)">● Live on port 5000</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-logo">AzEco<span style="color:var(--ice)">.Ai</span></div>
+      <div class="footer-links">
+        <a href="#hero">Home</a>
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#tech">Tech</a>
+        <a href="#about">Team</a>
+        <a href="#cta">Contact</a>
+      </div>
+      <div class="footer-copy">© 2026 AzEco.Ai · Road Ice Intelligence · Baku, AZ</div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── CURSOR ──
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animCursor() {
+  cursor.style.left = mx + 'px'; cursor.style.top = my + 'px';
+  rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animCursor);
+}
+animCursor();
+document.querySelectorAll('a, button, .feat-card, .team-card, .pstat').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width = '20px'; cursor.style.height = '20px';
+    cursor.style.opacity = '0.6';
+    ring.style.width = '50px'; ring.style.height = '50px';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width = '12px'; cursor.style.height = '12px';
+    cursor.style.opacity = '1';
+    ring.style.width = '36px'; ring.style.height = '36px';
+  });
+});
+
+// ── SCROLL REVEAL ──
+const reveals = document.querySelectorAll('.reveal');
+const revealObs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+reveals.forEach(el => revealObs.observe(el));
+
+// ── COUNT UP ──
+function animateCountUp(el, target, duration) {
+  let start = 0;
+  const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.round(start);
+    if (start >= target) clearInterval(timer);
+  }, 16);
+}
+const countObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const target = parseInt(e.target.dataset.target);
+      animateCountUp(e.target, target, 1500);
+      countObs.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('.count-up').forEach(el => countObs.observe(el));
+
+// ── NAV SCROLL SHADOW ──
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  if (window.scrollY > 60) {
+    nav.style.background = 'rgba(5,8,16,0.95)';
+  } else {
+    nav.style.background = 'rgba(5,8,16,0.6)';
+  }
+});
+
+// ── HERO ICE PARTICLE CANVAS ──
+(function() {
+  const canvas = document.getElementById('hero-particles');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+
+  function resize() {
+    W = canvas.width = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Create ice crystal particles
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: Math.random() * 2000,
+      y: Math.random() * 900,
+      size: 0.5 + Math.random() * 2,
+      vx: -0.1 - Math.random() * 0.3,
+      vy: 0.05 + Math.random() * 0.15,
+      opacity: 0.1 + Math.random() * 0.4,
+      twinkle: Math.random() * Math.PI * 2,
+      twinkleSpeed: 0.02 + Math.random() * 0.04
+    });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    particles.forEach(p => {
+      p.twinkle += p.twinkleSpeed;
+      const alpha = p.opacity * (0.6 + 0.4 * Math.sin(p.twinkle));
+
+      // Draw snowflake/crystal
+      ctx.save();
+      ctx.translate(p.x % W, p.y % H);
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 0.6;
+
+      for (let arm = 0; arm < 6; arm++) {
+        ctx.save();
+        ctx.rotate(arm * Math.PI / 3);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -p.size * 4);
+        ctx.stroke();
+        // Branch
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size * 2);
+        ctx.lineTo(p.size, -p.size * 3);
+        ctx.moveTo(0, -p.size * 2);
+        ctx.lineTo(-p.size, -p.size * 3);
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.restore();
+
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.y > H + 10) p.y = -10;
+      if (p.x < -10) p.x = W + 10;
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── SMOOTH SCROLL for nav links ──
+document.querySelectorAll('a[href^="#"]').forEach(link => {
+  link.addEventListener('click', e => {
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) {
+      e.preventDefault();
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
+</script>
+</body>
+</html>
